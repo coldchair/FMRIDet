@@ -1,3 +1,13 @@
 -r requirements/build.txt
 -r requirements/optional.txt
 -r requirements/runtime.txt
+# pycocotools
+# pycocoevalcap
+# tqdm
+# pyyaml
+# azfuse @ git+https://github.com/microsoft/azfuse.git
+# transformers
+# boto3
+nibabel
+h5py
+IPython
