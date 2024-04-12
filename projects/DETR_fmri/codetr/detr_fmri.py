@@ -24,10 +24,12 @@ class DETR_teacher(DETR):
                 mode: str = 'tensor') -> ForwardResults:
         return super().forward(inputs, data_samples, mode)
         
-    def pre_transformer(
-            self,
-            img_feats: Tuple[Tensor],
-            batch_data_samples: OptSampleList = None) -> Tuple[Dict, Dict]:
-        assert(0)
-        
-        
+
+@MODELS.register_module()
+class DETR_student(DETR):
+    def forward(self,
+                inputs: torch.Tensor,
+                inputs_fmri: torch.Tensor,
+                data_samples: OptSampleList = None,
+                mode: str = 'tensor') -> ForwardResults:
+        return super().forward(inputs_fmri, data_samples, mode)

@@ -5,7 +5,7 @@ _base_ = [
 ]
 
 model = dict(
-    type='DETR_teacher',
+    type='DETR_student',
     num_queries=100,
     data_preprocessor=dict(
         type='DetDataPreprocessor_fmri',
@@ -92,13 +92,13 @@ model = dict(
 # optimizer
 optim_wrapper = dict(
     type='OptimWrapper',
-    optimizer=dict(type='AdamW', lr=1e-8, weight_decay=0.0001),
+    optimizer=dict(type='AdamW', lr=1e-7, weight_decay=0.0001),
     clip_grad=dict(max_norm=0.1, norm_type=2),
     paramwise_cfg=dict(
         custom_keys={'backbone': dict(lr_mult=0.1, decay_mult=1.0)}))
 
 # learning policy
-max_epochs = 1
+max_epochs = 40
 train_cfg = dict(
     type='EpochBasedTrainLoop', max_epochs=max_epochs, val_interval=1)
 val_cfg = dict(type='ValLoop')
@@ -110,13 +110,13 @@ param_scheduler = [
         begin=0,
         end=max_epochs,
         by_epoch=True,
-        milestones=[8],
+        milestones=[100],
         gamma=0.1)
 ]
 
 # NOTE: `auto_scale_lr` is for automatically scaling LR,
 # USER SHOULD NOT CHANGE ITS VALUES.
 # base_batch_size = (8 GPUs) x (2 samples per GPU)
-auto_scale_lr = dict(base_batch_size=2)
+auto_scale_lr = dict(base_batch_size=16)
 
-load_from = 'https://download.openmmlab.com/mmdetection/v3.0/detr/detr_r50_8xb2-150e_coco/detr_r50_8xb2-150e_coco_20221023_153551-436d03e8.pth'
+# load_from = 'https://download.openmmlab.com/mmdetection/v3.0/detr/detr_r50_8xb2-150e_coco/detr_r50_8xb2-150e_coco_20221023_153551-436d03e8.pth'

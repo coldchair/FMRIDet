@@ -49,9 +49,9 @@ class PackDetInputs_fmri(PackDetInputs):
             
             fmri = to_tensor(results['fmri'])
 
-            print('asdjasldnasklndklnasl')
-            print(img.shape)
-            print(fmri.shape)
+            # print('asdjasldnasklndklnasl')
+            # print(img.shape)
+            # print(fmri.shape)
 
             # ---------------------------------- modify ---------------------------------- #
             packed_results['inputs'] = img
