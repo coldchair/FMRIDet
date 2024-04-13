@@ -235,6 +235,9 @@ class DetectionTransformer(BaseDetector, metaclass=ABCMeta):
             has shape (bs, dim, H, W).
         """
         x = self.backbone(batch_inputs)
+        # print(type(x))
+        # for _ in x:
+        #     print(_.shape)
         if self.with_neck:
             x = self.neck(x)
         return x

@@ -101,6 +101,8 @@ class ChannelMapper(BaseModule):
 
     def forward(self, inputs: Tuple[Tensor]) -> Tuple[Tensor]:
         """Forward function."""
+        # print(inputs[0].shape)
+        # print(len(inputs), len(self.convs))
         assert len(inputs) == len(self.convs)
         outs = [self.convs[i](inputs[i]) for i in range(len(inputs))]
         if self.extra_convs:

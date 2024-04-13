@@ -14,18 +14,11 @@ model = dict(
         bgr_to_rgb=True,
         pad_size_divisor=1),
     backbone=dict(
-        type='ResNet',
-        depth=50,
-        num_stages=4,
-        out_indices=(3, ),
-        frozen_stages=1,
-        norm_cfg=dict(type='BN', requires_grad=False),
-        norm_eval=True,
-        style='pytorch',
-        init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet50')),
+        type='Backbone_fmri',
+    ),
     neck=dict(
         type='ChannelMapper',
-        in_channels=[2048],
+        in_channels=[256],
         kernel_size=1,
         out_channels=256,
         act_cfg=None,
@@ -92,13 +85,13 @@ model = dict(
 # optimizer
 optim_wrapper = dict(
     type='OptimWrapper',
-    optimizer=dict(type='AdamW', lr=1e-7, weight_decay=0.0001),
+    optimizer=dict(type='AdamW', lr=1e-4, weight_decay=0.0001),
     clip_grad=dict(max_norm=0.1, norm_type=2),
     paramwise_cfg=dict(
         custom_keys={'backbone': dict(lr_mult=0.1, decay_mult=1.0)}))
 
 # learning policy
-max_epochs = 40
+max_epochs = 20
 train_cfg = dict(
     type='EpochBasedTrainLoop', max_epochs=max_epochs, val_interval=1)
 val_cfg = dict(type='ValLoop')
@@ -110,7 +103,7 @@ param_scheduler = [
         begin=0,
         end=max_epochs,
         by_epoch=True,
-        milestones=[100],
+        milestones=[15],
         gamma=0.1)
 ]
 
@@ -120,3 +113,9 @@ param_scheduler = [
 auto_scale_lr = dict(base_batch_size=16)
 
 # load_from = 'https://download.openmmlab.com/mmdetection/v3.0/detr/detr_r50_8xb2-150e_coco/detr_r50_8xb2-150e_coco_20221023_153551-436d03e8.pth'
+
+vis_backends = [dict(type='TensorboardVisBackend'), dict(type = 'LocalVisBackend')]
+visualizer = dict(
+    type='DetLocalVisualizer',
+    vis_backends=vis_backends,
+    name='visualizer')

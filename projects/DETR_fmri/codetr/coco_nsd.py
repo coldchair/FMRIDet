@@ -29,6 +29,8 @@ class CocoNSDDataset(CocoDataset):
             X.append(cX)
         X = np.hstack(X) # shape : (n_samples, n_voxels)
         self.fmri = X
+
+        print("fmri shape : ", X.shape)
         return X
 
     def load_data_list(self) -> List[dict]:

@@ -8,6 +8,8 @@ import scipy.io
 from config import NSD_ROOT_DIR, DATA_ROOT_DIR
 from tqdm import tqdm
 
+from sklearn.preprocessing import StandardScaler
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -126,6 +128,14 @@ def main():
                 betas_ave_tr.append(betas_roi_ave[idx,:])
         betas_ave_tr = np.stack(betas_ave_tr)
         betas_ave_te = np.stack(betas_ave_te)    
+
+        scaler = StandardScaler()
+        betas_tr = scaler.fit_transform(betas_tr)
+        betas_te = scaler.transform(betas_te)
+
+        scaler = StandardScaler()
+        betas_ave_tr = scaler.fit_transform(betas_ave_tr)
+        betas_ave_te = scaler.transform(betas_ave_te)
         
         # Save
         np.save(f'{savedir}/{subject}_{roi}_betas_tr.npy',betas_tr)

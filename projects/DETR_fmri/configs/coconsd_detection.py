@@ -4,13 +4,13 @@ custom_imports = dict(
 
 dataset_type = 'CocoNSDDataset'
 data_root = './'
-image_dir = '../StableDiffusionReconstruction-main/all_images/images'
+image_dir = '../nsd_processed_data/all_images'
 
 # default : each sample
 
 subj = 'subj01'
 SAVE_ROOT_DIR = '../nsd_processed_data'
-ann_file = f'{SAVE_ROOT_DIR}/instances_0_73000_0.01.json'
+ann_file = f'{SAVE_ROOT_DIR}/instances_0_73000_0.json'
 index_file_tr = f'{SAVE_ROOT_DIR}/mrifeat/{subj}/index_each_tr.npy'
 index_file_te = f'{SAVE_ROOT_DIR}/mrifeat/{subj}/index_each_te.npy'
 
@@ -59,7 +59,7 @@ test_pipeline = [
 ]
 train_dataloader = dict(
     batch_size=16,
-    num_workers=8,
+    num_workers=4,
     persistent_workers=True,
     sampler=dict(type='DefaultSampler', shuffle=True),
     batch_sampler=dict(type='AspectRatioBatchSampler'),
@@ -75,7 +75,7 @@ train_dataloader = dict(
         backend_args=backend_args))
 val_dataloader = dict(
     batch_size=16,
-    num_workers=8,
+    num_workers=4,
     persistent_workers=True,
     drop_last=False,
     sampler=dict(type='DefaultSampler', shuffle=False),
