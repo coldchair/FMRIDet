@@ -17,4 +17,4 @@ from openxlab.dataset import get
 from openxlab.dataset import download
 download(dataset_repo='OpenDataLab/COCO_2017',
          source_path='/raw',
-         target_path='/home/hdeng/diffusion/fmri-detection/mmdetection/data') #数据集文件下载
+         target_path='/mnt/workspace/maxinzhu/denghan/coco') #数据集文件下载

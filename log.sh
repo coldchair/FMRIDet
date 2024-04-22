@@ -1,0 +1,2 @@
+python tools/analysis_tools/analyze_logs.py plot_curve /mnt/workspace/maxinzhu/denghan/FMRIDet/work_dirs/detr/detr_r50_8xb2-150e_coco_20221023_153551.log.json --keys loss_cls loss_bbox \
+--out ./work_dirs/detr/test
