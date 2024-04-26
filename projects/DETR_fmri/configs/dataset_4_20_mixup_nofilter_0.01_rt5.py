@@ -1,5 +1,4 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-# train_data with argumentation(mixup)
 custom_imports = dict(
     imports=['projects.DETR_fmri.codetr'], allow_failed_imports=False)
 
@@ -11,9 +10,9 @@ image_dir = '../nsd_processed_data/all_images'
 
 subj = 'subj01'
 SAVE_ROOT_DIR = '../nsd_processed_data'
-ann_file = f'{SAVE_ROOT_DIR}/instances_0_73000_0.01.json'
+ann_file = f'{SAVE_ROOT_DIR}/instances_0_73000_0.01_rt5.json'
 index_file_tr = f'{SAVE_ROOT_DIR}/mrifeat/{subj}/index_each_tr_ex.npy'
-index_file_te = f'{SAVE_ROOT_DIR}/mrifeat/{subj}/index_each_te.npy'
+index_file_te = f'{SAVE_ROOT_DIR}/mrifeat/{subj}/index_ave_te.npy'
 
 # early ventral midventral midlateral lateral parietal
 rois = ['early', 'ventral', 'midventral', 'midlateral', 'lateral', 'parietal']
@@ -23,7 +22,7 @@ fmri_files_path_te = []
 
 for roi in rois:
     fmri_files_path_tr.append(f'{SAVE_ROOT_DIR}/mrifeat/{subj}/{subj}_{roi}_betas_tr_ex.npy')
-    fmri_files_path_te.append(f'{SAVE_ROOT_DIR}/mrifeat/{subj}/{subj}_{roi}_betas_te.npy')
+    fmri_files_path_te.append(f'{SAVE_ROOT_DIR}/mrifeat/{subj}/{subj}_{roi}_betas_ave_te.npy')
 
 dataloader_type = 'DetDataLoader_fmri'
 
@@ -99,7 +98,9 @@ val_evaluator = dict(
     ann_file=ann_file,
     metric='bbox',
     classwise=True,
-    format_only=False,
+    format_only = False,
+    # format_only=True,
+    # outfile_prefix='./work_dirs/coco_detection/val',
     backend_args=backend_args)
 test_evaluator = val_evaluator
 

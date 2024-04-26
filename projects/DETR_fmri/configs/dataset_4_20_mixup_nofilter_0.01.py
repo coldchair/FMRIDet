@@ -94,11 +94,13 @@ val_dataloader = dict(
 test_dataloader = val_dataloader
 
 val_evaluator = dict(
-    type='CocoMetric',
+    type='CocoMetric_modified',
     ann_file=ann_file,
     metric='bbox',
     classwise=True,
-    format_only=False,
+    format_only = False,
+    # format_only=True,
+    # outfile_prefix='./work_dirs/coco_detection/val',
     backend_args=backend_args)
 test_evaluator = val_evaluator
 

@@ -31,7 +31,8 @@ from torch import Tensor
 from mmdet.registry import MODELS
 from mmdet.utils import MultiConfig, OptMultiConfig
 from mmdet.models.necks import ChannelMapper
-
+from mmdet.models.detectors import DABDETR
+from .my_models_dabdetr import DABDETR_distill
 
 # I add some new functions to the DETR model, for some needs in my project
 @MODELS.register_module()
@@ -62,7 +63,6 @@ class DETR_teacher(DETR_upgradation):
                 mode: str = 'tensor') -> ForwardResults:
         return super().forward(inputs, data_samples, mode)
 
-        
 
 @MODELS.register_module()
 class DETR_student(DETR_upgradation):
