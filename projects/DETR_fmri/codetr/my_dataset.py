@@ -17,10 +17,16 @@ class CocoNSDDataset(CocoDataset):
 
     ANN_ID_UNIQUE = False
 
-    def __init__(self, index_file, fmri_files_path, input_dim = 1, *args, **kwargs):
+    def __init__(self,
+                 index_file,
+                 fmri_files_path,
+                 input_dim = 1,
+                 padding_zeros = 0,
+                 *args, **kwargs):
         self.index_file = index_file
         self.fmri_files_path = fmri_files_path
         self.input_dim = input_dim
+        self.padding_zeros = padding_zeros
         super().__init__(*args, **kwargs)
     
     def read_and_stack_fmri(self, fmri_files_path):
@@ -29,6 +35,9 @@ class CocoNSDDataset(CocoDataset):
             for fmri_file in fmri_files_path:
                 cX = np.load(fmri_file).astype("float32")
                 X.append(cX)
+                if (self.padding_zeros > 0):
+                    zeros = np.zeros((cX.shape[0], self.padding_zeros), dtype="float32")
+                    X.append(zeros)
             X = np.hstack(X) # shape : (n_samples, n_voxels)
         else:
             X = []

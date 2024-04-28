@@ -109,3 +109,42 @@ class Backbone_None(BaseModule):
             x = x.view(-1, k, k, e)
             x = x.permute(0, 3, 1, 2)
         return (x,)
+
+@MODELS.register_module()
+class Backbone_Conv(BaseModule):
+    def __init__(self, out_channels = 256, **kwargs):
+        super().__init__(kwargs)
+        self.out_channels = out_channels
+        self.conv = nn.Conv1d(1, out_channels, kernel_size = 32, stride = 16, padding = 0)
+    
+    def forward(self, x):
+        x = x.unsqueeze(1)
+        x = self.conv(x)
+        return (x,)
+
+@MODELS.register_module()
+class Backbone_fmri_seperate(BaseModule):
+    def __init__(self, input_dim = 26688, output_dim = (256, 25, 25), resnet_blocks = 4, hidden_dim = 256, **kwargs):
+        super().__init__(kwargs)
+        self.input_dim = input_dim
+        self.output_dim = output_dim
+
+        for i in range(5):
+            for j in range(5):
+                setattr(self,
+                        "backbone_{}_{}".format(i, j),
+                        Backbone_fmri(input_dim = input_dim,
+                                      output_dim = (output_dim[0], 5, 5),
+                                      resnet_blocks = resnet_blocks,
+                                      hidden_dim = hidden_dim))
+
+    def forward(self, x):
+        outputs = []
+        for i in range(5):
+            for j in range(5):
+                outputs.append(getattr(self, "backbone_{}_{}".format(i, j))(x)[0].unsqueeze(1))
+        outputs = torch.cat(outputs, dim = 1).view(-1, 5, 5, self.output_dim[0], 5, 5)
+        outputs = outputs.permute(0, 3, 1, 4, 2, 5).contiguous().view(-1, self.output_dim[0], 25, 25)
+        return (outputs,)
+        
+                

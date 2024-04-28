@@ -1,25 +1,36 @@
 _base_ = [
     # '../../configs/_base_/datasets/coconsd_detection.py',
-    './dataset_4_20_mixup_nofilter_0.01.py',
+    './dataset_4_20_nofilter_0.01.py',
     # './dataset_train50.py',
     '../../../configs/_base_/default_runtime.py',
-    './dab_detr_config_student.py',
-    './dab_detr_config_teacher.py'
+    './dab_detr_config_student_64c.py',
+    './dab_detr_config_teacher_64c.py'
 ]
 
 student_config = _base_.student_config
 teacher_config = _base_.teacher_config
 
-# print(student_config)
-student_config['type'] = 'DABDETR_student_noen'
+student_config.backbone.hidden_dim = 4096
+student_config.num_queries = 300
+student_config.test_cfg.max_per_img = 300
+
+train_dataloader = dict(
+    batch_size=8,
+)
+val_dataloader = dict(
+    batch_size=8,
+)
+test_dataloader = dict(
+    batch_size=8,
+)
 
 model = dict(
-    type='DABDETR_distill_noen',
+    type='DABDETR_distill',
     teacher_cfg = teacher_config,
     student_cfg = student_config,
-    loss_feature_distill_alpha = 0.0,
-    loss_encoded_feature_distill_alpha = 2.0,
-    loss_feature_type = 'gussian mask L2',
+    loss_feature_distill_alpha = 1.0,
+    loss_encoded_feature_distill_alpha = 1.0,
+    loss_feature_type = 'L2',
     freeze_student_decoder_bool = False,
     freeze_student_encoder_bool = False,
     data_preprocessor=dict(

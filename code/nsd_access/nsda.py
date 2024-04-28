@@ -105,7 +105,8 @@ class NSDAccess(object):
         full_path = full_path.format(subject=subject,
                                      data_format=data_format,
                                      filename=filename)
-        return nb.load(full_path).get_data()
+        print(full_path)
+        return nb.load(full_path)
 
     def read_betas(self, subject, session_index, trial_index=[], data_type='betas_fithrf_GLMdenoise_RR', data_format='fsaverage', mask=None):
         """read_betas read betas from MRI files

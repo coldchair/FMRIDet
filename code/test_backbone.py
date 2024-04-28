@@ -1,5 +1,5 @@
 import torch
-from projects.DETR_fmri.codetr.my_backbone import Backbone_fmri_resnet1d_2_imgfeat, Backbone_fmri_transformer
+from projects.DETR_fmri.codetr.my_backbone import *
 import sys
 from projects.DETR_fmri.codetr.my_base_modules import TransformerPredictor
 
@@ -14,6 +14,7 @@ def get_module_memory_size(module):
 import torch
 from torch import nn
 
+
 if __name__ == '__main__':
     bs = 8
     c = 256
@@ -21,10 +22,22 @@ if __name__ == '__main__':
     m = 25
     fmri_len = 26688
 
-    inputs = torch.rand(bs, 1, fmri_len)
-    model = nn.Conv1d(kernel_size=32, stride=16, in_channels=1, out_channels=256)
-    outputs = model(inputs)
+    # fmri_len = 26880
+
+    inputs = torch.rand(bs, fmri_len)
+    model = Backbone_fmri_seperate()
+    outputs = model(inputs)[0]
     print(outputs.shape)
+
+    # inputs = torch.rand(bs, 1, fmri_len, dtype = torch.float64)
+    # model = Backbone_Conv()
+    # outputs = model(inputs)[0]
+    # print(outputs.shape)
+
+    # inputs = torch.rand(bs, 1, fmri_len)
+    # model = nn.Conv1d(kernel_size=32, stride=16, in_channels=1, out_channels=256)
+    # outputs = model(inputs)
+    # print(outputs.shape)
 
     # inputs = torch.rand(bs, fmri_len)
     # model = Backbone_fmri_transformer()

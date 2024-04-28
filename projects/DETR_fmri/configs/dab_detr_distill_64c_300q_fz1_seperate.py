@@ -1,26 +1,38 @@
 _base_ = [
     # '../../configs/_base_/datasets/coconsd_detection.py',
-    './dataset_4_20_mixup_nofilter_0.01.py',
+    './dataset_4_20_nofilter_0.01.py',
     # './dataset_train50.py',
     '../../../configs/_base_/default_runtime.py',
-    './dab_detr_config_student.py',
-    './dab_detr_config_teacher.py'
+    './dab_detr_config_student_64c.py',
+    './dab_detr_config_teacher_64c.py'
 ]
 
 student_config = _base_.student_config
 teacher_config = _base_.teacher_config
 
-# print(student_config)
-student_config['type'] = 'DABDETR_student_noen'
+student_config.backbone.hidden_dim = 256
+student_config.backbone.type = 'Backbone_fmri_seperate'
+student_config.num_queries = 300
+student_config.test_cfg.max_per_img = 300
+
+train_dataloader = dict(
+    batch_size=8,
+)
+val_dataloader = dict(
+    batch_size=8,
+)
+test_dataloader = dict(
+    batch_size=8,
+)
 
 model = dict(
-    type='DABDETR_distill_noen',
+    type='DABDETR_distill',
     teacher_cfg = teacher_config,
     student_cfg = student_config,
-    loss_feature_distill_alpha = 0.0,
-    loss_encoded_feature_distill_alpha = 2.0,
-    loss_feature_type = 'gussian mask L2',
-    freeze_student_decoder_bool = False,
+    loss_feature_distill_alpha = 1.0,
+    loss_encoded_feature_distill_alpha = 1.0,
+    loss_feature_type = 'L2',
+    freeze_student_decoder_bool = True,
     freeze_student_encoder_bool = False,
     data_preprocessor=dict(
         type='DetDataPreprocessor_fmri',
@@ -48,7 +60,7 @@ optim_wrapper = dict(
         custom_keys={'backbone': dict(lr_mult=0.1, decay_mult=1.0)}))
 
 # learning policy
-max_epochs = 50
+max_epochs = 100
 train_cfg = dict(
     type='EpochBasedTrainLoop', max_epochs=max_epochs, val_interval=1)
 val_cfg = dict(type='ValLoop')
@@ -60,7 +72,7 @@ param_scheduler = [
         begin=0,
         end=max_epochs,
         by_epoch=True,
-        milestones=[40],
+        milestones=[90],
         gamma=0.1)
 ]
 
@@ -78,3 +90,5 @@ visualizer = dict(
 custom_hooks = [dict(type='WriteValidationLossHook')]
 
 resume = True
+
+# load_from = '/mnt/workspace/maxinzhu/denghan/FMRIDet/work_dirs/dab_detr_distill_64c_300q_fz2/epoch_40.pth'
