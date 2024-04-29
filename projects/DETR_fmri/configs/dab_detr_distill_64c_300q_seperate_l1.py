@@ -10,7 +10,7 @@ _base_ = [
 student_config = _base_.student_config
 teacher_config = _base_.teacher_config
 
-student_config.backbone.hidden_dim = 256
+student_config.backbone.hidden_dim = 512
 student_config.backbone.type = 'Backbone_fmri_seperate'
 student_config.num_queries = 300
 student_config.test_cfg.max_per_img = 300
@@ -31,7 +31,7 @@ model = dict(
     student_cfg = student_config,
     loss_feature_distill_alpha = 1.0,
     loss_encoded_feature_distill_alpha = 1.0,
-    loss_feature_type = 'L2',
+    loss_feature_type = 'L1',
     freeze_student_decoder_bool = False,
     freeze_student_encoder_bool = False,
     data_preprocessor=dict(

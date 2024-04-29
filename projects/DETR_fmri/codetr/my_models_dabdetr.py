@@ -162,6 +162,11 @@ class DABDETR_distill(BaseDetector):
                     feature_student = self.student.extract_feat(inputs_fmri)[0]
                     feature_distill_loss = torch.mean((gm.unsqueeze(1) * ((feature_teacher - feature_student) ** 2))) * self.loss_feature_distill_alpha
                     loss['feature_distill_loss'] = feature_distill_loss
+                elif (self.loss_feature_type == 'L1'):
+                    feature_teacher = self.teacher.extract_feat(inputs)[0]
+                    feature_student = self.student.extract_feat(inputs_fmri)[0]
+                    feature_distill_loss = F.l1_loss(feature_teacher, feature_student)
+                    loss['feature_distill_loss'] = self.loss_feature_distill_alpha * feature_distill_loss
 
             # ----------------------------- encoded_feat_loss ---------------------------- #
             if (self.loss_encoded_feature_distill_alpha > 1e-9):
