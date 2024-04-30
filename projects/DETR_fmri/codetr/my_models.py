@@ -34,6 +34,7 @@ from mmdet.models.necks import ChannelMapper
 from mmdet.models.detectors import DABDETR
 from .my_models_dabdetr import DABDETR_distill
 from .my_models_position import SinePositionalEncoding1D
+from .my_models_dino import DINO_up
 
 # I add some new functions to the DETR model, for some needs in my project
 @MODELS.register_module()

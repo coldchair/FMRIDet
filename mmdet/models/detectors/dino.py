@@ -175,6 +175,11 @@ class DINO(DeformableDETR):
         # multi-class classification, while DeformDETR, where the input
         # is `enc_outputs_class[..., 0]` selects according to scores of
         # binary classification.
+
+        # print(enc_outputs_class.shape)
+        # print(self.num_queries)
+        # topk = min(self.num_queries, enc_outputs_class.shape[1])
+
         topk_indices = torch.topk(
             enc_outputs_class.max(-1)[0], k=self.num_queries, dim=1)[1]
         topk_score = torch.gather(

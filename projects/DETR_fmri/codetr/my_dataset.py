@@ -10,7 +10,6 @@ from mmdet.datasets.api_wrappers import COCO
 from mmdet.datasets.coco import CocoDataset
 import numpy as np
 
-
 @DATASETS.register_module()
 class CocoNSDDataset(CocoDataset):
     """Dataset for NSD."""
@@ -20,6 +19,8 @@ class CocoNSDDataset(CocoDataset):
     def __init__(self,
                  index_file,
                  fmri_files_path,
+                 input_type = 'one', # 'one' or 'multi'
+                 input_size = None, # None or list of int
                  input_dim = 1,
                  padding_zeros = 0,
                  *args, **kwargs):
@@ -27,36 +28,59 @@ class CocoNSDDataset(CocoDataset):
         self.fmri_files_path = fmri_files_path
         self.input_dim = input_dim
         self.padding_zeros = padding_zeros
+        self.input_type = input_type 
+        self.input_size = input_size
         super().__init__(*args, **kwargs)
     
     def read_and_stack_fmri(self, fmri_files_path):
-        if (self.input_dim == 1):
-            X = []
-            for fmri_file in fmri_files_path:
-                cX = np.load(fmri_file).astype("float32")
-                X.append(cX)
-                if (self.padding_zeros > 0):
-                    zeros = np.zeros((cX.shape[0], self.padding_zeros), dtype="float32")
-                    X.append(zeros)
-            X = np.hstack(X) # shape : (n_samples, n_voxels)
+        if (self.input_type == 'one'):
+            if (self.input_dim == 1):
+                X = []
+                for fmri_file in fmri_files_path:
+                    cX = np.load(fmri_file).astype("float32")
+                    X.append(cX)
+                    if (self.padding_zeros > 0):
+                        zeros = np.zeros((cX.shape[0], self.padding_zeros), dtype="float32")
+                        X.append(zeros)
+                X = np.hstack(X) # shape : (n_samples, n_voxels)
+            else:
+                X = []
+                for fmri_file in fmri_files_path:
+                    cX = np.load(fmri_file).astype("float32")
+                    n = cX.shape[-1]
+                    # print(cX.shape)
+                    if (n % self.input_dim != 0):
+                        cX = np.pad(cX, [(0, 0), (0, self.input_dim - n % self.input_dim)])
+                    len = n // self.input_dim + (n % self.input_dim != 0)
+                    cX = cX.reshape(-1, len, self.input_dim)
+                    # print(cX.shape)
+                    X.append(cX)
+                X = np.concatenate(X, axis = 1) # shape : (n_samples, length, input_dim)
+
+            self.fmri = X
+            print("fmri shape : ", X.shape)
+            return X
         else:
-            X = []
-            for fmri_file in fmri_files_path:
-                cX = np.load(fmri_file).astype("float32")
-                n = cX.shape[-1]
-                # print(cX.shape)
-                if (n % self.input_dim != 0):
-                    cX = np.pad(cX, [(0, 0), (0, self.input_dim - n % self.input_dim)])
-                len = n // self.input_dim + (n % self.input_dim != 0)
-                cX = cX.reshape(-1, len, self.input_dim)
-                # print(cX.shape)
-                X.append(cX)
-            X = np.concatenate(X, axis = 1) # shape : (n_samples, length, input_dim)
+            ans = np.zeros((0, np.sum(self.input_size)), dtype="float32")
+            for i, subj in enumerate(fmri_files_path):
+                print(f'loading fmri data for subject {i}-th')
+                X = []
+                for fmri_file in subj:
+                    cX = np.load(fmri_file).astype("float32")
+                    X.append(cX)
+                    if (self.padding_zeros > 0):
+                        zeros = np.zeros((cX.shape[0], self.padding_zeros), dtype="float32")
+                        X.append(zeros)
+                X = np.hstack(X) # shape : (n_samples, n_voxels)
+                z0 = np.sum(self.input_size[:i]).astype("int")
+                z1 = np.sum(self.input_size[i+1:]).astype("int")
+                X = np.pad(X, [(0, 0), (z0, z1)])
+                ans = np.concatenate([ans, X], axis = 0)
+            print("fmri shape : ", ans.shape)
+            self.fmri = ans
+            return ans
+                    
 
-        self.fmri = X
-
-        print("fmri shape : ", X.shape)
-        return X
 
     def load_data_list(self) -> List[dict]:
         """Load annotations from an annotation file named as ``self.ann_file``
@@ -76,7 +100,14 @@ class CocoNSDDataset(CocoDataset):
 
         # ------------------------------- modification ------------------------------- #
         # img_ids = self.coco.get_img_ids()
-        img_ids = np.load(self.index_file).tolist()
+        if (self.input_type == 'one'):
+            img_ids = np.load(self.index_file).tolist()
+        else:
+            img_ids = []
+            for subj in self.index_file:
+                img_ids_ = np.load(subj).tolist()
+                img_ids = img_ids + img_ids_
+
         self.read_and_stack_fmri(self.fmri_files_path)
         # ------------------------------- modification ------------------------------- #
 

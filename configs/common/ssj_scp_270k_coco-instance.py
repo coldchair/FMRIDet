@@ -1,7 +1,7 @@
 _base_ = 'ssj_270k_coco-instance.py'
 # dataset settings
 dataset_type = 'CocoDataset'
-data_root = 'data/coco/'
+data_root = '../coco/'
 
 image_size = (1024, 1024)
 

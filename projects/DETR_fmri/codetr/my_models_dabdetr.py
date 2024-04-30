@@ -114,7 +114,7 @@ class DABDETR_distill(BaseDetector):
                  student_cfg,
                  loss_feature_distill_alpha: float = 0.0,
                  loss_encoded_feature_distill_alpha : float = 0.0,  # 暂时不能用
-                 loss_feature_type : str = 'L2' or 'gussian mask L2' or 'gussian mask L1',
+                 loss_feature_type : str = 'L2' or 'gussian mask L2' or 'gussian mask L1' or 'L2_2',
                  freeze_student_decoder_bool = False,
                  freeze_student_encoder_bool = False,
                  **kwargs):
@@ -150,38 +150,44 @@ class DABDETR_distill(BaseDetector):
 
         if mode == 'loss':
             loss = self.student.loss(inputs_fmri, data_samples)
-            # --------------------------------- feat_loss -------------------------------- #
             if (self.loss_feature_distill_alpha > 1e-9):
-                if (self.loss_feature_type == 'L2'):
-                    feature_teacher = self.teacher.extract_feat(inputs)[0]
-                    feature_student = self.student.extract_feat(inputs_fmri)[0]
-                    feature_distill_loss = F.mse_loss(feature_teacher, feature_student)
-                    loss['feature_distill_loss'] = self.loss_feature_distill_alpha * feature_distill_loss
-                elif (self.loss_feature_type == 'gussian mask L2'):
-                    feature_teacher = self.teacher.extract_feat(inputs)[0]
-                    feature_student = self.student.extract_feat(inputs_fmri)[0]
-                    feature_distill_loss = torch.mean((gm.unsqueeze(1) * ((feature_teacher - feature_student) ** 2))) * self.loss_feature_distill_alpha
-                    loss['feature_distill_loss'] = feature_distill_loss
-                elif (self.loss_feature_type == 'L1'):
-                    feature_teacher = self.teacher.extract_feat(inputs)[0]
-                    feature_student = self.student.extract_feat(inputs_fmri)[0]
-                    feature_distill_loss = F.l1_loss(feature_teacher, feature_student)
-                    loss['feature_distill_loss'] = self.loss_feature_distill_alpha * feature_distill_loss
-
-            # ----------------------------- encoded_feat_loss ---------------------------- #
-            if (self.loss_encoded_feature_distill_alpha > 1e-9):
+                feature_teacher = self.teacher.extract_feat(inputs)[0]
+                feature_student = self.student.extract_feat(inputs_fmri)[0]
+            if (self.loss_feature_distill_alpha > 1e-9 and self.loss_feature_type == 'L2_2'
+                or self.loss_encoded_feature_distill_alpha > 1e-9):
                 encoder_inputs_dict_t, decoder_inputs_dict_t = self.teacher.pre_transformer(
                     (feature_teacher,), data_samples)
                 encoder_outputs_dict_t = self.teacher.forward_encoder(**encoder_inputs_dict_t)
                 encoder_inputs_dict_s, decoder_inputs_dict_s = self.student.pre_transformer(
                     (feature_student,), data_samples)
                 encoder_outputs_dict_s = self.student.forward_encoder(**encoder_inputs_dict_s)
+
+            # --------------------------------- feat_loss -------------------------------- #
+            if (self.loss_feature_distill_alpha > 1e-9):
+                if (self.loss_feature_type == 'L2'):
+                    feature_distill_loss = F.mse_loss(feature_teacher, feature_student)
+                    loss['feature_distill_loss'] = self.loss_feature_distill_alpha * feature_distill_loss
+                elif (self.loss_feature_type == 'gussian mask L2'):
+                    feature_distill_loss = torch.mean((gm.unsqueeze(1) * ((feature_teacher - feature_student) ** 2))) * self.loss_feature_distill_alpha
+                    loss['feature_distill_loss'] = feature_distill_loss
+                elif (self.loss_feature_type == 'L1'):
+                    feature_distill_loss = F.l1_loss(feature_teacher, feature_student)
+                    loss['feature_distill_loss'] = self.loss_feature_distill_alpha * feature_distill_loss
+                elif (self.loss_feature_type == 'L2_2'):
+                    loss['feature_distill_loss'] = self.loss_feature_distill_alpha * F.mse_loss(
+                        encoder_outputs_dict_t['memory'],
+                        feature_student
+                    )
+
+            # ----------------------------- encoded_feat_loss ---------------------------- #
+            if (self.loss_encoded_feature_distill_alpha > 1e-9):
                 encoded_feature_distill_loss = F.mse_loss(encoder_outputs_dict_t['memory'], encoder_outputs_dict_s['memory'])
                 loss['encoded_feature_distill_loss'] = self.loss_encoded_feature_distill_alpha * encoded_feature_distill_loss
 
             return loss
         elif mode == 'predict':
             return self.student.predict(inputs_fmri, data_samples)
+            # return self.teacher.predict(inputs, data_samples)
         elif mode == 'tensor':
             return self.student._forward(inputs_fmri, data_samples)
         else:

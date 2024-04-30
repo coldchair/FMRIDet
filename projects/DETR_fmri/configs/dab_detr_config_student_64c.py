@@ -80,7 +80,9 @@ student_config = dict(
                 dict(type='BBoxL1Cost', weight=5.0, box_format='xywh'),
                 dict(type='IoUCost', iou_mode='giou', weight=2.0)
             ])),
-    test_cfg=dict(max_per_img=300),
+    test_cfg=dict(max_per_img=300,
+                  nms=dict(type='soft_nms', iou_threshold=0.8)
+                  ), 
     init_cfg = dict(
         type = 'Pretrained',
         checkpoint = '/mnt/workspace/maxinzhu/denghan/FMRIDet/work_dirs/dab_detr_64c/epoch_50.pth'

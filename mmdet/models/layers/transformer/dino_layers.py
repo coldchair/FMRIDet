@@ -80,8 +80,11 @@ class DinoTransformerDecoder(DeformableDetrTransformerDecoder):
                 reference_points_input = \
                     reference_points[:, :, None] * valid_ratios[:, None]
 
+            # print(reference_points_input.shape)
             query_sine_embed = coordinate_to_encoding(
-                reference_points_input[:, :, 0, :])
+                reference_points_input[:, :, 0, :],
+                num_feats=self.embed_dims // 2,)
+            # print(query_sine_embed.shape)
             query_pos = self.ref_point_head(query_sine_embed)
 
             query = layer(
