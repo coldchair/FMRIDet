@@ -17,8 +17,13 @@ index_file_tr = []
 index_file_te = []
 fmri_files_path_tr = []
 fmri_files_path_te = []
-input_size = [26688, 24395, 22649, 21064]
-input_size_sum = sum(input_size) # 94796
+
+input_size = [27638, 25217, 23327, 21756]
+input_size_sum = sum(input_size) # 97938
+
+input_type = 'multi_single'
+
+fmri_prefix_name = []
 
 for i, subj in enumerate(subj_list):
     index_file_tr.append( f'{SAVE_ROOT_DIR}/mrifeat/{subj}/index_each_tr.npy')
@@ -29,17 +34,16 @@ for i, subj in enumerate(subj_list):
     for roi in rois:
         fmri_files_path_tr[i].append(f'{SAVE_ROOT_DIR}/mrifeat/{subj}/{subj}_{roi}_betas_tr.npy')
         fmri_files_path_te[i].append(f'{SAVE_ROOT_DIR}/mrifeat/{subj}/{subj}_{roi}_betas_ave_te.npy')
+    fmri_prefix_name.append(f'{SAVE_ROOT_DIR}/mrifeat/{subj}/streams')
 
-# fmri_files_path_te = [fmri_files_path_te[0], [], [], []] # 只测试 subj01 的数据
-# index_file_te = [index_file_te[0], [], [], []]
-
-fmri_files_path_te = [[], [], [], fmri_files_path_te[3]] # 只测试 subj01 的数据
-index_file_te = [[], [], [], index_file_te[3]]
-
-# fmri_files_path_te = [[], [], fmri_files_path_te[2], []] # 只测试 subj01 的数据
-# index_file_te = [[], [], index_file_te[2], []]
+fmri_files_path_te = [fmri_files_path_te[0], [], [], []] # 只测试 subj01 的数据
+index_file_te = [index_file_te[0], [], [], []]
 # fmri_files_path_te = [[], fmri_files_path_te[1], [], []] # 只测试 subj01 的数据
 # index_file_te = [[], index_file_te[1], [], []]
+# fmri_files_path_te = [[], [], fmri_files_path_te[2], []] # 只测试 subj01 的数据
+# index_file_te = [[], [], index_file_te[2], []]
+# fmri_files_path_te = [[], [], [], fmri_files_path_te[3]] # 只测试 subj01 的数据
+# index_file_te = [[], [], [], index_file_te[3]]
 
 dataloader_type = 'DetDataLoader_fmri'
 
@@ -59,12 +63,14 @@ dataloader_type = 'DetDataLoader_fmri'
 backend_args = None
 
 train_pipeline = [
+    dict(type = 'LoadfMRIFromFile', backend_args = backend_args),
     dict(type='LoadImageFromFile', backend_args=backend_args),
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='Resize', scale=(1333, 800), keep_ratio=True),
     dict(type='PackDetInputs_fmri')
 ]
 test_pipeline = [
+    dict(type = 'LoadfMRIFromFile', backend_args = backend_args),
     dict(type='LoadImageFromFile', backend_args=backend_args),
     dict(type='Resize', scale=(1333, 800), keep_ratio=True),
     # If you don't have a gt annotation, delete the pipeline
@@ -84,9 +90,12 @@ train_dataloader = dict(
         index_file = index_file_tr,
         fmri_files_path = fmri_files_path_tr,
         # input_dim = 2,
-        input_type = 'multi',
+        input_type = input_type,
         input_size = input_size,
         type=dataset_type,
+        fmri_prefix_name = fmri_prefix_name,
+        fmri_suffix_name = 'tr_',
+
         data_root=data_root,
         ann_file=ann_file,
         data_prefix=dict(img=image_dir),
@@ -103,9 +112,12 @@ val_dataloader = dict(
         index_file = index_file_te,
         fmri_files_path = fmri_files_path_te,
         # input_dim = 2,
-        input_type = 'multi',
+        input_type = input_type,
         input_size = input_size,
+        fmri_prefix_name = fmri_prefix_name,
+        fmri_suffix_name = 'ave_te_',
         type=dataset_type,
+
         data_root=data_root,
         ann_file=ann_file,
         data_prefix=dict(img=image_dir),

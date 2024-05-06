@@ -68,6 +68,36 @@ class TransformerPredictor(nn.Module):
 
 # --------------------------------- CLIP ViT --------------------------------- #
 
+from collections import OrderedDict
+from typing import Tuple, Union
+
+class QuickGELU(nn.Module):
+    def forward(self, x: torch.Tensor):
+        return x * torch.sigmoid(1.702 * x)
+
+class ResidualAttentionBlock(nn.Module):
+    def __init__(self, d_model: int, n_head: int, attn_mask: torch.Tensor = None):
+        super().__init__()
+
+        self.attn = nn.MultiheadAttention(d_model, n_head)
+        self.ln_1 = nn.LayerNorm(d_model)
+        self.mlp = nn.Sequential(OrderedDict([
+            ("c_fc", nn.Linear(d_model, d_model * 4)),
+            ("gelu", QuickGELU()),
+            ("c_proj", nn.Linear(d_model * 4, d_model))
+        ]))
+        self.ln_2 = nn.LayerNorm(d_model)
+        self.attn_mask = attn_mask
+
+    def attention(self, x: torch.Tensor):
+        self.attn_mask = self.attn_mask.to(dtype=x.dtype, device=x.device) if self.attn_mask is not None else None
+        return self.attn(x, x, x, need_weights=False, attn_mask=self.attn_mask)[0]
+
+    def forward(self, x: torch.Tensor):
+        x = x + self.attention(self.ln_1(x))
+        x = x + self.mlp(self.ln_2(x))
+        return x
+
 class Transformer(nn.Module):
     def __init__(self, width: int, layers: int, heads: int, attn_mask: torch.Tensor = None):
         super().__init__()
@@ -112,5 +142,70 @@ class VisionTransformer(nn.Module):
 
         if self.proj is not None:
             x = x @ self.proj
+
+        return x
+
+class VisionTransformer_3D(nn.Module):
+    def __init__(self,
+                 patch_size: int,
+                 width: int,
+                 layers: int,
+                 heads: int,
+                 input_resolution = (42, 46, 61),
+                 num_class_embeddings = 25,
+    ):
+        super().__init__()
+        self.input_resolution = input_resolution
+        self.num_class_embeddings = num_class_embeddings
+
+        padding = patch_size // 2 + 1
+        self.conv1 = nn.Conv3d(in_channels=1,
+                               out_channels=width,
+                               kernel_size=patch_size,
+                               stride=patch_size,
+                               padding=padding,
+                               bias=False)
+
+        scale = width ** -0.5
+        # self.class_embedding = nn.Parameter(scale * torch.randn(width))
+        # self.positional_embedding = nn.Parameter(scale * torch.randn((input_resolution // patch_size) ** 2 + 1, width))
+
+        self.class_embedding = nn.Parameter(scale * torch.randn(num_class_embeddings, width))
+
+        n = []
+        for i in range(3):
+            n.append((input_resolution[i] + 2 * padding - patch_size) // patch_size + 1)
+        
+        print(f'input_resolution = {input_resolution}')
+        print(f'After conv1, n = {n}')
+        
+        self.positional_embedding = nn.Parameter(scale * torch.randn(n[0] * n[1] * n[2] + num_class_embeddings,
+                                                                     width))
+
+        self.ln_pre = nn.LayerNorm(width)
+
+        self.transformer = Transformer(width, layers, heads)
+
+        self.ln_post = nn.LayerNorm(width)
+
+    def forward(self, x: torch.Tensor):
+        x = self.conv1(x)  # shape = [*, width, grid, grid]
+        x = x.reshape(x.shape[0], x.shape[1], -1)  # shape = [*, width, grid ** 2]
+        x = x.permute(0, 2, 1)  # shape = [*, grid ** 2, width]
+        # x = torch.cat([self.class_embedding.to(x.dtype) + torch.zeros(x.shape[0], 1, x.shape[-1], dtype=x.dtype, device=x.device), x], dim=1)  # shape = [*, grid ** 2 + 1, width]
+        x = torch.cat([self.class_embedding.to(x.dtype) + torch.zeros(x.shape[0],
+                                                                      self.num_class_embeddings,
+                                                                      x.shape[-1],
+                                                                      dtype=x.dtype,
+                                                                      device=x.device),
+                       x], dim=1)
+        x = x + self.positional_embedding.to(x.dtype)
+        x = self.ln_pre(x)
+
+        x = x.permute(1, 0, 2)  # NLD -> LND
+        x = self.transformer(x)
+        x = x.permute(1, 0, 2)  # LND -> NLD
+
+        x = self.ln_post(x[:, :self.num_class_embeddings, :])
 
         return x

@@ -174,9 +174,12 @@ class DABDETR_distill(BaseDetector):
                     feature_distill_loss = F.l1_loss(feature_teacher, feature_student)
                     loss['feature_distill_loss'] = self.loss_feature_distill_alpha * feature_distill_loss
                 elif (self.loss_feature_type == 'L2_2'):
+                    # print(encoder_outputs_dict_t['memory'].shape)
                     loss['feature_distill_loss'] = self.loss_feature_distill_alpha * F.mse_loss(
                         encoder_outputs_dict_t['memory'],
-                        feature_student
+                        feature_student.view(feature_student.shape[0],
+                                             feature_student.shape[1],
+                                             -1).permute(0, 2, 1)
                     )
 
             # ----------------------------- encoded_feat_loss ---------------------------- #

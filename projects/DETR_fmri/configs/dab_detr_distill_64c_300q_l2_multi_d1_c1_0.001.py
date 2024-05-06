@@ -1,6 +1,6 @@
 _base_ = [
     # '../../configs/_base_/datasets/coconsd_detection.py',
-    './dataset_4_20_nofilter_0.01_multi.py',
+    './dataset_4_20_nofilter_0.001_multi_single.py',
     # './dataset_train50.py',
     '../../../configs/_base_/default_runtime.py',
     './dab_detr_config_student_64c.py',
@@ -11,27 +11,50 @@ student_config = _base_.student_config
 teacher_config = _base_.teacher_config
 
 student_config.backbone.hidden_dim = 4096
-student_config.backbone.input_dim = 94796
+student_config.backbone.input_dim = 97938
 student_config.num_queries = 300
 student_config.test_cfg.max_per_img = 300
 
+pretrained_model = '/mnt/workspace/maxinzhu/denghan/FMRIDet/work_dirs/dab_detr_64c_c1_2/epoch_4.pth'
+
+student_config.bbox_head.num_classes = 12
+student_config.init_cfg.checkpoint = pretrained_model
+
+teacher_config.bbox_head.num_classes = 12
+teacher_config.init_cfg.checkpoint = pretrained_model
+
+
+
+classes = ('person', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant',
+           'bear', 'zebra', 'giraffe', 'teddy bear')
+# In total 12 classes
+
 train_dataloader = dict(
     batch_size=8,
+    dataset = dict(
+        metainfo = dict(classes=classes),
+    )
 )
 val_dataloader = dict(
     batch_size=8,
+    dataset = dict(
+        metainfo = dict(classes=classes),
+    )
 )
 test_dataloader = dict(
     batch_size=8,
+    dataset = dict(
+        metainfo = dict(classes=classes),
+    )
 )
 
 model = dict(
     type='DABDETR_distill',
     teacher_cfg = teacher_config,
     student_cfg = student_config,
-    loss_feature_distill_alpha = 10.0,
+    loss_feature_distill_alpha = 1.0,
     loss_encoded_feature_distill_alpha = 10.0,
-    loss_feature_type = 'L2_2',
+    loss_feature_type = 'L2',
     freeze_student_decoder_bool = False,
     freeze_student_encoder_bool = False,
     data_preprocessor=dict(

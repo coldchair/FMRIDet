@@ -38,5 +38,3 @@ class ChannelMapper_hiddenlayer(ChannelMapper):
         inputs = self.l2(inputs)
         inputs = inputs.view(inputs.shape[0], *self.input_size)
         return (inputs,)
-
-    

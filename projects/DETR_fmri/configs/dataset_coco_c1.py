@@ -1,47 +1,13 @@
-# Copyright (c) OpenMMLab. All rights reserved.
+# dataset settings
 custom_imports = dict(
     imports=['projects.DETR_fmri.codetr'], allow_failed_imports=False)
 
-dataset_type = 'CocoNSDDataset'
-data_root = './'
-image_dir = '../nsd_processed_data/all_images'
+dataset_type = 'CocoDataset'
+data_root = '../coco/'
 
-# default : each sample
-
-SAVE_ROOT_DIR = '../nsd_processed_data'
-ann_file = f'{SAVE_ROOT_DIR}/instances_0_73000_0.01.json'
-rois = ['early', 'ventral', 'midventral', 'midlateral', 'lateral', 'parietal']
-subj_list = ['subj01', 'subj02', 'subj05', 'subj07']
-
-index_file_tr = []
-index_file_te = []
-fmri_files_path_tr = []
-fmri_files_path_te = []
-input_size = [26688, 24395, 22649, 21064]
-input_size_sum = sum(input_size) # 94796
-
-for i, subj in enumerate(subj_list):
-    index_file_tr.append( f'{SAVE_ROOT_DIR}/mrifeat/{subj}/index_each_tr.npy')
-    index_file_te.append( f'{SAVE_ROOT_DIR}/mrifeat/{subj}/index_ave_te.npy')
-    # early ventral midventral midlateral lateral parietal
-    fmri_files_path_te.append([])
-    fmri_files_path_tr.append([])
-    for roi in rois:
-        fmri_files_path_tr[i].append(f'{SAVE_ROOT_DIR}/mrifeat/{subj}/{subj}_{roi}_betas_tr.npy')
-        fmri_files_path_te[i].append(f'{SAVE_ROOT_DIR}/mrifeat/{subj}/{subj}_{roi}_betas_ave_te.npy')
-
-# fmri_files_path_te = [fmri_files_path_te[0], [], [], []] # 只测试 subj01 的数据
-# index_file_te = [index_file_te[0], [], [], []]
-
-fmri_files_path_te = [[], [], [], fmri_files_path_te[3]] # 只测试 subj01 的数据
-index_file_te = [[], [], [], index_file_te[3]]
-
-# fmri_files_path_te = [[], [], fmri_files_path_te[2], []] # 只测试 subj01 的数据
-# index_file_te = [[], [], index_file_te[2], []]
-# fmri_files_path_te = [[], fmri_files_path_te[1], [], []] # 只测试 subj01 的数据
-# index_file_te = [[], index_file_te[1], [], []]
-
-dataloader_type = 'DetDataLoader_fmri'
+classes = ('person', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant',
+           'bear', 'zebra', 'giraffe', 'teddy bear')
+# In total 12 classes
 
 # Example to use different file client
 # Method 1: simply set the data root and let the file I/O module
@@ -62,7 +28,8 @@ train_pipeline = [
     dict(type='LoadImageFromFile', backend_args=backend_args),
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='Resize', scale=(1333, 800), keep_ratio=True),
-    dict(type='PackDetInputs_fmri')
+    dict(type='RandomFlip', prob=0.5),
+    dict(type='PackDetInputs')
 ]
 test_pipeline = [
     dict(type='LoadImageFromFile', backend_args=backend_args),
@@ -70,7 +37,7 @@ test_pipeline = [
     # If you don't have a gt annotation, delete the pipeline
     dict(type='LoadAnnotations', with_bbox=True),
     dict(
-        type='PackDetInputs_fmri',
+        type='PackDetInputs',
         meta_keys=('img_id', 'img_path', 'ori_shape', 'img_shape',
                    'scale_factor'))
 ]
@@ -81,15 +48,11 @@ train_dataloader = dict(
     sampler=dict(type='DefaultSampler', shuffle=True),
     batch_sampler=dict(type='AspectRatioBatchSampler'),
     dataset=dict(
-        index_file = index_file_tr,
-        fmri_files_path = fmri_files_path_tr,
-        # input_dim = 2,
-        input_type = 'multi',
-        input_size = input_size,
+        metainfo = dict(classes=classes),
         type=dataset_type,
         data_root=data_root,
-        ann_file=ann_file,
-        data_prefix=dict(img=image_dir),
+        ann_file='annotations/instances_train2017.json',
+        data_prefix=dict(img='train2017/'),
         filter_cfg=dict(filter_empty_gt=True, min_size=32),
         pipeline=train_pipeline,
         backend_args=backend_args))
@@ -100,28 +63,22 @@ val_dataloader = dict(
     drop_last=False,
     sampler=dict(type='DefaultSampler', shuffle=False),
     dataset=dict(
-        index_file = index_file_te,
-        fmri_files_path = fmri_files_path_te,
-        # input_dim = 2,
-        input_type = 'multi',
-        input_size = input_size,
+        metainfo = dict(classes=classes),
         type=dataset_type,
         data_root=data_root,
-        ann_file=ann_file,
-        data_prefix=dict(img=image_dir),
+        ann_file='annotations/instances_val2017.json',
+        data_prefix=dict(img='val2017/'),
         test_mode=True,
         pipeline=test_pipeline,
         backend_args=backend_args))
 test_dataloader = val_dataloader
 
 val_evaluator = dict(
-    type='CocoMetric_modified',
-    ann_file=ann_file,
+    type='CocoMetric',
+    ann_file=data_root + 'annotations/instances_val2017.json',
     metric='bbox',
     classwise=True,
-    format_only = False,
-    # format_only=True,
-    # outfile_prefix='./work_dirs/coco_detection/val',
+    format_only=False,
     backend_args=backend_args)
 test_evaluator = val_evaluator
 

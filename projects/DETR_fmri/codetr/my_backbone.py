@@ -25,6 +25,8 @@ import torch.nn as nn
 
 from .my_base_modules import TransformerPredictor
 from .my_backbone_resnet import Backbone_fmri_resnet1d_2_imgfeat
+from .my_backbone_3d_resnet import Backbone_3d
+from .my_backbone_vit3d import Backbone_vit3d
 
 # inputs : batch_size * fmri_len
 # outputs : channels * 25 * 25

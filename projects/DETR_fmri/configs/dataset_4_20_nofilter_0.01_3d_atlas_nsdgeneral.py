@@ -8,38 +8,23 @@ image_dir = '../nsd_processed_data/all_images'
 
 # default : each sample
 
+subj = 'subj01'
 SAVE_ROOT_DIR = '../nsd_processed_data'
 ann_file = f'{SAVE_ROOT_DIR}/instances_0_73000_0.01.json'
-rois = ['early', 'ventral', 'midventral', 'midlateral', 'lateral', 'parietal']
-subj_list = ['subj01', 'subj02', 'subj05', 'subj07']
+index_file_tr = f'{SAVE_ROOT_DIR}/mrifeat/{subj}/index_each_tr.npy'
+index_file_te = f'{SAVE_ROOT_DIR}/mrifeat/{subj}/index_ave_te.npy'
 
-index_file_tr = []
-index_file_te = []
+# early ventral midventral midlateral lateral parietal
+rois = ['early', 'ventral', 'midventral', 'midlateral', 'lateral', 'parietal']
+
 fmri_files_path_tr = []
 fmri_files_path_te = []
-input_size = [26688, 24395, 22649, 21064]
-input_size_sum = sum(input_size) # 94796
 
-for i, subj in enumerate(subj_list):
-    index_file_tr.append( f'{SAVE_ROOT_DIR}/mrifeat/{subj}/index_each_tr.npy')
-    index_file_te.append( f'{SAVE_ROOT_DIR}/mrifeat/{subj}/index_ave_te.npy')
-    # early ventral midventral midlateral lateral parietal
-    fmri_files_path_te.append([])
-    fmri_files_path_tr.append([])
-    for roi in rois:
-        fmri_files_path_tr[i].append(f'{SAVE_ROOT_DIR}/mrifeat/{subj}/{subj}_{roi}_betas_tr.npy')
-        fmri_files_path_te[i].append(f'{SAVE_ROOT_DIR}/mrifeat/{subj}/{subj}_{roi}_betas_ave_te.npy')
+for roi in rois:
+    fmri_files_path_tr.append(f'{SAVE_ROOT_DIR}/mrifeat/{subj}/{subj}_{roi}_betas_tr.npy')
+    fmri_files_path_te.append(f'{SAVE_ROOT_DIR}/mrifeat/{subj}/{subj}_{roi}_betas_ave_te.npy')
 
-# fmri_files_path_te = [fmri_files_path_te[0], [], [], []] # 只测试 subj01 的数据
-# index_file_te = [index_file_te[0], [], [], []]
-
-fmri_files_path_te = [[], [], [], fmri_files_path_te[3]] # 只测试 subj01 的数据
-index_file_te = [[], [], [], index_file_te[3]]
-
-# fmri_files_path_te = [[], [], fmri_files_path_te[2], []] # 只测试 subj01 的数据
-# index_file_te = [[], [], index_file_te[2], []]
-# fmri_files_path_te = [[], fmri_files_path_te[1], [], []] # 只测试 subj01 的数据
-# index_file_te = [[], index_file_te[1], [], []]
+fmri_prefix_name = f"{SAVE_ROOT_DIR}/mrifeat/{subj}/betas_all_nsdgeneral"
 
 dataloader_type = 'DetDataLoader_fmri'
 
@@ -59,12 +44,14 @@ dataloader_type = 'DetDataLoader_fmri'
 backend_args = None
 
 train_pipeline = [
+    dict(type = 'LoadfMRIFromFile', backend_args = backend_args),
     dict(type='LoadImageFromFile', backend_args=backend_args),
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='Resize', scale=(1333, 800), keep_ratio=True),
     dict(type='PackDetInputs_fmri')
 ]
 test_pipeline = [
+    dict(type = 'LoadfMRIFromFile', backend_args = backend_args),
     dict(type='LoadImageFromFile', backend_args=backend_args),
     dict(type='Resize', scale=(1333, 800), keep_ratio=True),
     # If you don't have a gt annotation, delete the pipeline
@@ -84,8 +71,10 @@ train_dataloader = dict(
         index_file = index_file_tr,
         fmri_files_path = fmri_files_path_tr,
         # input_dim = 2,
-        input_type = 'multi',
-        input_size = input_size,
+        input_type = '3d',
+        fmri_suffix_name = '_tr',
+        fmri_prefix_name = fmri_prefix_name,
+
         type=dataset_type,
         data_root=data_root,
         ann_file=ann_file,
@@ -103,8 +92,10 @@ val_dataloader = dict(
         index_file = index_file_te,
         fmri_files_path = fmri_files_path_te,
         # input_dim = 2,
-        input_type = 'multi',
-        input_size = input_size,
+        input_type = '3d',
+        fmri_suffix_name = '_ave_te',
+        fmri_prefix_name = fmri_prefix_name,
+
         type=dataset_type,
         data_root=data_root,
         ann_file=ann_file,

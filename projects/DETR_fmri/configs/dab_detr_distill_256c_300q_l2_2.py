@@ -1,17 +1,16 @@
 _base_ = [
     # '../../configs/_base_/datasets/coconsd_detection.py',
-    './dataset_4_20_nofilter_0.01_multi.py',
+    './dataset_4_20_nofilter_0.01.py',
     # './dataset_train50.py',
     '../../../configs/_base_/default_runtime.py',
-    './dab_detr_config_student_64c.py',
-    './dab_detr_config_teacher_64c.py'
+    './dab_detr_config_student_256c.py',
+    './dab_detr_config_teacher_256c.py'
 ]
 
 student_config = _base_.student_config
 teacher_config = _base_.teacher_config
 
-student_config.backbone.hidden_dim = 4096
-student_config.backbone.input_dim = 94796
+student_config.backbone.hidden_dim = 3072
 student_config.num_queries = 300
 student_config.test_cfg.max_per_img = 300
 

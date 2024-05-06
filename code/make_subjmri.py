@@ -44,6 +44,7 @@ def main():
 
     subject = opt.subject
     atlasname = 'streams'
+    atlasname = 'HCP_MMP1'
     
     nsda = NSDAccess(NSD_ROOT_DIR)
     nsd_expdesign = scipy.io.loadmat(os.path.join(NSD_ROOT_DIR, 'nsddata/experiments/nsd/nsd_expdesign.mat'))

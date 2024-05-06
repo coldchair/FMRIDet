@@ -9,6 +9,7 @@ from mmdet.registry import DATASETS
 from mmdet.datasets.api_wrappers import COCO
 from mmdet.datasets.coco import CocoDataset
 import numpy as np
+import os
 
 @DATASETS.register_module()
 class CocoNSDDataset(CocoDataset):
@@ -19,10 +20,12 @@ class CocoNSDDataset(CocoDataset):
     def __init__(self,
                  index_file,
                  fmri_files_path,
-                 input_type = 'one', # 'one' or 'multi'
+                 input_type = 'one', # 'one' or 'multi' or '3d' or 'multi_single'
                  input_size = None, # None or list of int
                  input_dim = 1,
                  padding_zeros = 0,
+                 fmri_suffix_name = '_tr', # '_tr' or '_ave_te'
+                 fmri_prefix_name = None,
                  *args, **kwargs):
         self.index_file = index_file
         self.fmri_files_path = fmri_files_path
@@ -30,6 +33,8 @@ class CocoNSDDataset(CocoDataset):
         self.padding_zeros = padding_zeros
         self.input_type = input_type 
         self.input_size = input_size
+        self.fmri_suffix_name = fmri_suffix_name
+        self.fmri_prefix_name = fmri_prefix_name
         super().__init__(*args, **kwargs)
     
     def read_and_stack_fmri(self, fmri_files_path):
@@ -64,14 +69,17 @@ class CocoNSDDataset(CocoDataset):
             ans = np.zeros((0, np.sum(self.input_size)), dtype="float32")
             for i, subj in enumerate(fmri_files_path):
                 print(f'loading fmri data for subject {i}-th')
-                X = []
-                for fmri_file in subj:
-                    cX = np.load(fmri_file).astype("float32")
-                    X.append(cX)
-                    if (self.padding_zeros > 0):
-                        zeros = np.zeros((cX.shape[0], self.padding_zeros), dtype="float32")
-                        X.append(zeros)
-                X = np.hstack(X) # shape : (n_samples, n_voxels)
+                if (subj != []):
+                    X = []
+                    for fmri_file in subj:
+                        cX = np.load(fmri_file).astype("float32")
+                        X.append(cX)
+                        if (self.padding_zeros > 0):
+                            zeros = np.zeros((cX.shape[0], self.padding_zeros), dtype="float32")
+                            X.append(zeros)
+                    X = np.hstack(X) # shape : (n_samples, n_voxels)
+                else:
+                    X = np.zeros((0, self.input_size[i]), dtype="float32")
                 z0 = np.sum(self.input_size[:i]).astype("int")
                 z1 = np.sum(self.input_size[i+1:]).astype("int")
                 X = np.pad(X, [(0, 0), (z0, z1)])
@@ -102,13 +110,51 @@ class CocoNSDDataset(CocoDataset):
         # img_ids = self.coco.get_img_ids()
         if (self.input_type == 'one'):
             img_ids = np.load(self.index_file).tolist()
-        else:
+            self.read_and_stack_fmri(self.fmri_files_path)
+        elif (self.input_type == 'multi'):
             img_ids = []
             for subj in self.index_file:
-                img_ids_ = np.load(subj).tolist()
-                img_ids = img_ids + img_ids_
+                if (subj != []):
+                    img_ids_ = np.load(subj).tolist()
+                    img_ids = img_ids + img_ids_
+            self.read_and_stack_fmri(self.fmri_files_path)
+        elif (self.input_type == '3d'):
+            img_ids = np.load(self.index_file).tolist()
+            self.fmri_files_path = [os.path.join(self.fmri_prefix_name,
+                                                 f'{i:06}{self.fmri_suffix_name}.npy') for i in range(len(img_ids))]
+        elif (self.input_type == 'multi_single'):
+            img_ids = []
+            self.fmri_files_path = []
+            self.fmri_pd = []
+            for i, subj in enumerate(self.index_file):
+                if (subj != []):
+                    img_ids_ = np.load(subj).tolist()
+                    img_ids = img_ids + img_ids_
 
-        self.read_and_stack_fmri(self.fmri_files_path)
+                    pf = [
+                        os.path.join(self.fmri_prefix_name[i],
+                                     f'{self.fmri_suffix_name}{j:06}.npy')
+                        for j in range(len(img_ids_))]
+                    self.fmri_files_path = self.fmri_files_path + pf
+
+                    p = (np.sum(self.input_size[:i]).astype('int'), 
+                         np.sum(self.input_size[i+1:]).astype('int'))
+                    pd = [p for j in range(len(img_ids_))]
+                    self.fmri_pd = self.fmri_pd + pd
+
+                    print(f'i : {i}, len : {len(img_ids_)}')
+            
+        print(f'img_ids : {len(img_ids)}')
+
+        if not hasattr(self, 'fmri_files_path'):
+            self.fmri_files_path  = [None for i in range(len(img_ids))]
+        
+        if not hasattr(self, 'fmri'):
+            self.fmri = [None for i in range(len(img_ids))]
+        
+        if not hasattr(self, 'fmri_pd'):
+            self.fmri_pd = [None for i in range(len(img_ids))]
+
         # ------------------------------- modification ------------------------------- #
 
         data_list = []
@@ -128,7 +174,11 @@ class CocoNSDDataset(CocoDataset):
                 raw_img_info,
                 # ------------------------------- modification ------------------------------- #
                 'fmri' :
-                self.fmri[i]
+                self.fmri[i],
+                'fmri_path' : 
+                self.fmri_files_path[i],
+                'padding_zeros' :
+                self.fmri_pd[i],
                 # ------------------------------- modification ------------------------------- #
             })
             data_list.append(parsed_data_info)
@@ -157,6 +207,8 @@ class CocoNSDDataset(CocoDataset):
 
         # ------------------------------- modification ------------------------------- #
         data_info['fmri'] = raw_data_info['fmri']
+        data_info['fmri_path'] = raw_data_info['fmri_path']
+        data_info['padding_zeros'] = raw_data_info['padding_zeros']
         # ------------------------------- modification ------------------------------- #
 
         # TODO: need to change data_prefix['img'] to data_prefix['img_path']

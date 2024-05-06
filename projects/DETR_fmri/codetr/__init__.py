@@ -5,6 +5,7 @@ from .data_preprocessor import DetDataPreprocessor_fmri
 from .my_hooks import WriteValidationLossHook
 from .my_neck import ChannelMapper_None, ChannelMapper_hiddenlayer
 from .my_metric import CocoMetric_modified
+from .my_transform import *
 
 __all__ = [
 ]
