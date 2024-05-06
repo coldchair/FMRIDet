@@ -5,6 +5,7 @@ from projects.DETR_fmri.codetr.my_base_modules import TransformerPredictor, Visi
 
 from projects.DETR_fmri.codetr.my_backbone_3d_resnet import *
 from projects.DETR_fmri.codetr.my_backbone_vit3d import Backbone_vit3d
+from projects.DETR_fmri.codetr.my_losses import DistillCrossEntropyLoss
 
 def get_module_memory_size(module):
     size = sys.getsizeof(module)
@@ -19,6 +20,25 @@ from torch import nn
 
 
 if __name__ == '__main__':
+
+    a = torch.rand(5) - 0.5
+    b = torch.rand(5) - 0.5
+    a = a * 10
+    b = b * 10
+    print(a, b)
+    w = torch.full((5,), 1.0)
+    model = DistillCrossEntropyLoss(use_sigmoid=True)
+    print(model(a, b, w))
+
+    exit(0)
+
+    # a = torch.rand((1, 2)).long()
+    # print(a)
+    # exit(0)
+
+    # a = torch.arange_like(torch.range(10)).long()
+    # print(a)
+
     bs = 8
     c = 256
     n = 25

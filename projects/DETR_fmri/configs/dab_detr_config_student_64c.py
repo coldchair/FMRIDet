@@ -60,7 +60,7 @@ student_config = dict(
         return_intermediate=True),
     positional_encoding=dict(num_feats=32, temperature=20, normalize=True),
     bbox_head=dict(
-        type='DABDETRHead',
+        type='DABDETRHead_distill',
         num_classes=80,
         embed_dims=64,
         loss_cls=dict(
@@ -70,7 +70,14 @@ student_config = dict(
             alpha=0.25,
             loss_weight=1.0),
         loss_bbox=dict(type='L1Loss', loss_weight=5.0),
-        loss_iou=dict(type='GIoULoss', loss_weight=2.0)),
+        loss_iou=dict(type='GIoULoss', loss_weight=2.0),
+        loss_cls_distill=dict(
+            type='DistillCrossEntropyLoss',
+            use_sigmoid=True,
+            loss_weight=1.0),
+        loss_bbox_distill=dict(type='L1Loss', loss_weight=5.0),
+        loss_iou_distill=dict(type='GIoULoss', loss_weight=2.0),
+    ),
     # training and testing settings
     train_cfg=dict(
         assigner=dict(
@@ -79,7 +86,17 @@ student_config = dict(
                 dict(type='FocalLossCost', weight=2., eps=1e-8),
                 dict(type='BBoxL1Cost', weight=5.0, box_format='xywh'),
                 dict(type='IoUCost', iou_mode='giou', weight=2.0)
-            ])),
+            ]),
+        # 不确定要不要改 Assigner
+        distill_assigner=dict(
+            type='HungarianAssigner_distill',
+            match_costs=[
+                dict(type='DistillCrossEntropyLossCost', weight=1.0),
+                dict(type='BBoxL1Cost', weight=5.0, box_format='xywh'),
+                dict(type='IoUCost', iou_mode='giou', weight=2.0)
+            ],
+        ),
+    ),
     test_cfg=dict(max_per_img=300,
                   nms=dict(type='soft_nms', iou_threshold=0.8)
                   ), 

@@ -35,17 +35,62 @@ from mmdet.models.detectors import DABDETR
 from mmdet.models.layers import  (DABDetrTransformerDecoder,
                                   DABDetrTransformerEncoder, inverse_sigmoid)
 from .my_models_position import SinePositionalEncoding1D
+from mmengine.structures import InstanceData
+
 
 
 @MODELS.register_module()
-class DABDETR_up(DABDETR):
+class DABDETR_v2(DABDETR):
     # This function is used to get loss from the model in the validation step
     def val_loss_step(self, data: Union[tuple, dict, list]):
         data = self.data_preprocessor(data, True)
         return self._run_forward(data, mode='loss')  # type: ignore
 
+    def distill_forward_transformer(self,
+                            img_feats: Tuple[Tensor],
+                            batch_data_samples: OptSampleList = None) -> Dict:
+        encoder_inputs_dict, decoder_inputs_dict = self.pre_transformer(
+            img_feats, batch_data_samples)
+
+        encoder_outputs_dict = self.forward_encoder(**encoder_inputs_dict)
+
+        tmp_dec_in, head_inputs_dict = self.pre_decoder(**encoder_outputs_dict)
+        decoder_inputs_dict.update(tmp_dec_in)
+
+        decoder_outputs_dict = self.forward_decoder(**decoder_inputs_dict)
+        head_inputs_dict.update(decoder_outputs_dict)
+
+        return head_inputs_dict, encoder_outputs_dict
+
+    def distill_loss(self, batch_inputs: Tensor,
+             batch_data_samples: SampleList) -> Union[dict, list]:
+        """Calculate distill losses from a batch of inputs and data samples.
+
+        Args:
+            batch_inputs (Tensor): Input images of shape (bs, dim, H, W).
+                These should usually be mean centered and std scaled.
+            batch_data_samples (List[:obj:`DetDataSample`]): The batch
+                data samples. It usually includes information such
+                as `gt_instance` or `gt_panoptic_seg` or `gt_sem_seg`.
+
+        Returns:
+            dict: A dictionary of loss components
+        """
+        img_feats = self.extract_feat(batch_inputs)
+        head_inputs_dict, encoder_outputs_dict = \
+            self.distill_forward_transformer(img_feats, batch_data_samples)
+        losses, loss_inputs = self.bbox_head.distill_loss(
+            **head_inputs_dict,
+            batch_data_samples=batch_data_samples)
+        
+        layer_cls_scores, layer_bbox_preds, batch_gt_instances, batch_img_metas = loss_inputs
+
+        return losses, img_feats[0], encoder_outputs_dict['memory'],\
+            layer_cls_scores, layer_bbox_preds, batch_gt_instances, batch_img_metas
+
+    
 @MODELS.register_module()
-class DABDETR_teacher(DABDETR_up):
+class DABDETR_teacher(DABDETR_v2):
     def freeze_params(self):
         for parameter in self.parameters():
             parameter.requires_grad = False
@@ -59,8 +104,9 @@ class DABDETR_teacher(DABDETR_up):
                 mode: str = 'tensor') -> ForwardResults:
         return super().forward(inputs, data_samples, mode)
 
+
 @MODELS.register_module()
-class DABDETR_student(DABDETR_up):
+class DABDETR_student(DABDETR_v2):
     def forward(self,
                 inputs: torch.Tensor,
                 inputs_fmri: torch.Tensor,
@@ -78,7 +124,7 @@ class DABDetrTransformerEncoder_None(DetrTransformerEncoder):
 
 # no transformer encoder, only transformer decoder
 @MODELS.register_module()
-class DABDETR_student_noen(DABDETR_up):
+class DABDETR_student_noen(DABDETR_v2):
     def _init_layers(self) -> None:
         """Initialize layers except for backbone, neck and bbox_head."""
         self.positional_encoding = SinePositionalEncoding(
@@ -225,6 +271,68 @@ class DABDETR_distill(BaseDetector):
         pass
 
 @MODELS.register_module()
+class DABDETR_distill_new(DABDETR_distill):
+    def __init__(self,
+                 loss_label_alpha: float = 1.0,
+                 **kwargs):
+        super().__init__(**kwargs)
+        self.loss_label_alpha = loss_label_alpha
+
+    def forward(self,
+                inputs: torch.Tensor,
+                inputs_fmri: torch.Tensor,
+                gm : torch.Tensor,
+                data_samples: OptSampleList = None,
+                mode: str = 'tensor') -> ForwardResults:
+
+        if mode == 'loss':
+            s_losses, s_low_level_feats, s_high_level_feats, \
+                s_layer_cls_scores, s_layer_bbox_preds, s_batch_gt_instances, s_batch_img_metas = \
+                self.student.distill_loss(inputs_fmri, data_samples)
+            
+            t_losses, t_low_level_feats, t_high_level_feats, \
+                t_layer_cls_scores, t_layer_bbox_preds, t_batch_gt_instances, t_batch_img_metas = \
+                    self.teacher.distill_loss(inputs, data_samples)
+            
+            # print(s_batch_gt_instances)
+            # print(s_batch_img_metas)
+            # print(s_layer_cls_scores.shape)
+            # print(s_layer_bbox_preds.shape)
+
+            t_layer_cls_scores = t_layer_cls_scores.sigmoid()
+          
+            losses_2 = self.student.bbox_head.loss_by_feat_distill(
+                s_layer_cls_scores, s_layer_bbox_preds,
+                t_layer_cls_scores, t_layer_bbox_preds,
+                s_batch_gt_instances, s_batch_img_metas
+            )
+
+            losses_2 = {k: v * self.loss_label_alpha for k, v in losses_2.items()}
+
+            # print(losses_2)
+
+            t_losses = {**t_losses, **losses_2}
+
+            # Only for test
+            # t_losses['loss_test'] = F.mse_loss(s_layer_cls_scores, t_layer_cls_scores) + \
+            #     F.mse_loss(s_layer_bbox_preds, t_layer_bbox_preds)
+            
+            t_losses['feature_distill_loss'] = self.loss_feature_distill_alpha * \
+                F.mse_loss(s_low_level_feats, t_low_level_feats)
+            t_losses['encoded_feature_distill_loss'] = self.loss_encoded_feature_distill_alpha * \
+                F.mse_loss(s_high_level_feats, t_high_level_feats)
+            
+            return t_losses
+        elif mode == 'predict':
+            return self.student.predict(inputs_fmri, data_samples)
+            # return self.teacher.predict(inputs, data_samples)
+        elif mode == 'tensor':
+            return self.student._forward(inputs_fmri, data_samples)
+        else:
+            raise RuntimeError(f'Invalid mode "{mode}". '
+                               'Only supports loss, predict and tensor mode')
+
+@MODELS.register_module()
 class DABDETR_distill_noen(DABDETR_distill):
     def forward(self,
                 inputs: torch.Tensor,
@@ -257,7 +365,7 @@ class DABDETR_distill_noen(DABDETR_distill):
                                'Only supports loss, predict and tensor mode')
 
 @MODELS.register_module()
-class DABDETR_1D(DABDETR_up):
+class DABDETR_1D(DABDETR_v2):
     def _init_layers(self) -> None:
         self.positional_encoding = SinePositionalEncoding1D(
             **self.positional_encoding)

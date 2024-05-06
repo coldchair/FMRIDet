@@ -65,7 +65,7 @@ teacher_config = dict(
         return_intermediate=True),
     positional_encoding=dict(num_feats=32, temperature=20, normalize=True),
     bbox_head=dict(
-        type='DABDETRHead',
+        type='DABDETRHead_distill',
         num_classes=80,
         embed_dims=64,
         loss_cls=dict(
