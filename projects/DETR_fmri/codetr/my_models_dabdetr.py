@@ -79,14 +79,15 @@ class DABDETR_v2(DABDETR):
         img_feats = self.extract_feat(batch_inputs)
         head_inputs_dict, encoder_outputs_dict = \
             self.distill_forward_transformer(img_feats, batch_data_samples)
-        losses, loss_inputs = self.bbox_head.distill_loss(
+        losses, loss_inputs, labels_list = self.bbox_head.distill_loss(
             **head_inputs_dict,
             batch_data_samples=batch_data_samples)
         
         layer_cls_scores, layer_bbox_preds, batch_gt_instances, batch_img_metas = loss_inputs
 
         return losses, img_feats[0], encoder_outputs_dict['memory'],\
-            layer_cls_scores, layer_bbox_preds, batch_gt_instances, batch_img_metas
+            layer_cls_scores, layer_bbox_preds, batch_gt_instances, batch_img_metas, \
+                labels_list,
 
     
 @MODELS.register_module()
@@ -277,6 +278,7 @@ class DABDETR_distill_new(DABDETR_distill):
                  **kwargs):
         super().__init__(**kwargs)
         self.loss_label_alpha = loss_label_alpha
+        self.background_label = 80
 
     def forward(self,
                 inputs: torch.Tensor,
@@ -287,12 +289,14 @@ class DABDETR_distill_new(DABDETR_distill):
 
         if mode == 'loss':
             s_losses, s_low_level_feats, s_high_level_feats, \
-                s_layer_cls_scores, s_layer_bbox_preds, s_batch_gt_instances, s_batch_img_metas = \
-                self.student.distill_loss(inputs_fmri, data_samples)
+                s_layer_cls_scores, s_layer_bbox_preds, s_batch_gt_instances, s_batch_img_metas, \
+                    s_labels_list = \
+                        self.student.distill_loss(inputs_fmri, data_samples)
             
             t_losses, t_low_level_feats, t_high_level_feats, \
-                t_layer_cls_scores, t_layer_bbox_preds, t_batch_gt_instances, t_batch_img_metas = \
-                    self.teacher.distill_loss(inputs, data_samples)
+                t_layer_cls_scores, t_layer_bbox_preds, t_batch_gt_instances, t_batch_img_metas, \
+                    t_labels_list = \
+                        self.teacher.distill_loss(inputs, data_samples)
             
             # print(s_batch_gt_instances)
             # print(s_batch_img_metas)
@@ -300,29 +304,57 @@ class DABDETR_distill_new(DABDETR_distill):
             # print(s_layer_bbox_preds.shape)
 
             t_layer_cls_scores = t_layer_cls_scores.sigmoid()
-          
-            losses_2 = self.student.bbox_head.loss_by_feat_distill(
-                s_layer_cls_scores, s_layer_bbox_preds,
-                t_layer_cls_scores, t_layer_bbox_preds,
+
+            mask_feats_t = []
+            mask_feats_s = []
+            for i in range(len(s_labels_list)):
+                mask_t = []
+                mask_s = []
+                for j in range(len(s_labels_list[i])):
+                    mask_t.append(t_labels_list[i][j] != self.background_label)
+                    mask_s.append(s_labels_list[i][j] != self.background_label)
+                mask_feats_t.append(torch.stack(mask_t, dim=0))
+                mask_feats_s.append(torch.stack(mask_s, dim=0))
+            mask_feats_t = torch.stack(mask_feats_t, dim=0)
+            mask_feats_s = torch.stack(mask_feats_s, dim=0)
+
+            losses_pos_all = self.student.bbox_head.loss_by_feat_distill(
+                s_layer_cls_scores, s_layer_bbox_preds, mask_feats_s,
+                t_layer_cls_scores, t_layer_bbox_preds, mask_feats_t,
                 s_batch_gt_instances, s_batch_img_metas
             )
+            losses_neg_all = self.student.bbox_head.loss_by_feat_distill(
+                s_layer_cls_scores, s_layer_bbox_preds, torch.logical_not(mask_feats_s),
+                t_layer_cls_scores, t_layer_bbox_preds, torch.logical_not(mask_feats_t),
+                s_batch_gt_instances, s_batch_img_metas
+            )
+            
+            def add_suffix(d1, suffix):
+                return {k + suffix: v for k, v in d1.items()}
+            
+            losses_pos_all = add_suffix(losses_pos_all, '_pos')
+            losses_neg_all = add_suffix(losses_neg_all, '_neg')
 
-            losses_2 = {k: v * self.loss_label_alpha for k, v in losses_2.items()}
+            losses_pos_all = {k: v * self.loss_label_alpha for k, v in losses_pos_all.items()}
+            losses_neg_all = {k: v * self.loss_label_alpha for k, v in losses_neg_all.items()}
 
-            # print(losses_2)
-
-            t_losses = {**t_losses, **losses_2}
+            s_losses = {**s_losses,
+                        **losses_pos_all,
+                        **losses_neg_all}
 
             # Only for test
             # t_losses['loss_test'] = F.mse_loss(s_layer_cls_scores, t_layer_cls_scores) + \
             #     F.mse_loss(s_layer_bbox_preds, t_layer_bbox_preds)
             
-            t_losses['feature_distill_loss'] = self.loss_feature_distill_alpha * \
+            s_losses['feature_distill_loss'] = self.loss_feature_distill_alpha * \
                 F.mse_loss(s_low_level_feats, t_low_level_feats)
-            t_losses['encoded_feature_distill_loss'] = self.loss_encoded_feature_distill_alpha * \
+            s_losses['encoded_feature_distill_loss'] = self.loss_encoded_feature_distill_alpha * \
                 F.mse_loss(s_high_level_feats, t_high_level_feats)
             
-            return t_losses
+            sorted_dict = {k: s_losses[k] for k in sorted(s_losses)}
+
+            # print(t_losses)
+            return sorted_dict
         elif mode == 'predict':
             return self.student.predict(inputs_fmri, data_samples)
             # return self.teacher.predict(inputs, data_samples)

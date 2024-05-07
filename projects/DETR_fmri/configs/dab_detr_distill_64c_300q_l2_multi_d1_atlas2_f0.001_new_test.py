@@ -56,7 +56,6 @@ model = dict(
     student_cfg = student_config,
     loss_feature_distill_alpha = 1.0,
     loss_encoded_feature_distill_alpha = 10.0,
-    loss_label_alpha = 1.0,
     loss_feature_type = 'L2',
     freeze_student_decoder_bool = False,
     freeze_student_encoder_bool = False,
