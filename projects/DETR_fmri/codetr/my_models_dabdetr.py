@@ -62,6 +62,12 @@ class DABDETR_v2(DABDETR):
 
         return head_inputs_dict, encoder_outputs_dict
 
+    def extract_feat_v2(self, batch_inputs: Tensor) -> Tuple[Tensor]:
+        x_0 = self.backbone(batch_inputs)
+        if self.with_neck:
+            x = self.neck(x_0)
+        return x_0, x
+
     def distill_loss_onlyfeat(self, batch_inputs: Tensor,
              batch_data_samples: SampleList) -> Union[dict, list]:
         """Calculate distill losses from a batch of inputs and data samples.
@@ -76,10 +82,10 @@ class DABDETR_v2(DABDETR):
         Returns:
             dict: A dictionary of loss components
         """
-        img_feats = self.extract_feat(batch_inputs)
+        img_feats_0, img_feats = self.extract_feat_v2(batch_inputs)
         head_inputs_dict, encoder_outputs_dict = \
             self.distill_forward_transformer(img_feats, batch_data_samples)
-        return img_feats[0], encoder_outputs_dict['memory']
+        return img_feats_0[0], img_feats[0], encoder_outputs_dict['memory']
 
     def distill_loss(self, batch_inputs: Tensor,
              batch_data_samples: SampleList) -> Union[dict, list]:
@@ -95,7 +101,7 @@ class DABDETR_v2(DABDETR):
         Returns:
             dict: A dictionary of loss components
         """
-        img_feats = self.extract_feat(batch_inputs)
+        img_feats_0, img_feats = self.extract_feat_v2(batch_inputs)
         head_inputs_dict, encoder_outputs_dict = \
             self.distill_forward_transformer(img_feats, batch_data_samples)
         losses, loss_inputs, labels_list = self.bbox_head.distill_loss(
@@ -104,7 +110,7 @@ class DABDETR_v2(DABDETR):
         
         layer_cls_scores, layer_bbox_preds, batch_gt_instances, batch_img_metas = loss_inputs
 
-        return losses, img_feats[0], encoder_outputs_dict['memory'],\
+        return losses, img_feats_0[0], img_feats[0], encoder_outputs_dict['memory'],\
             layer_cls_scores, layer_bbox_preds, batch_gt_instances, batch_img_metas, \
                 labels_list,
 
@@ -296,9 +302,16 @@ class DABDETR_distill_new(DABDETR_distill):
                 teacher_dim = 64,
                 student_dim = 64,
                  loss_label_alpha: float = 1.0,
+                 loss_label_neg_alpha = None,
                  **kwargs):
         super().__init__(**kwargs)
         self.loss_label_alpha = loss_label_alpha
+
+        if (loss_label_neg_alpha is not None):
+            self.loss_label_neg_alpha = loss_label_neg_alpha
+        else:
+            self.loss_label_neg_alpha = loss_label_alpha
+
         self.background_label = 80
         self.teacher_dim = teacher_dim
         self.student_dim = student_dim
@@ -315,12 +328,12 @@ class DABDETR_distill_new(DABDETR_distill):
 
         if mode == 'loss':
             if (self.loss_label_alpha > 0):
-                s_losses, s_low_level_feats, s_high_level_feats, \
+                s_losses, s_low_level_feats_0, s_low_level_feats, s_high_level_feats, \
                     s_layer_cls_scores, s_layer_bbox_preds, s_batch_gt_instances, s_batch_img_metas, \
                         s_labels_list = \
                             self.student.distill_loss(inputs_fmri, data_samples)
                 
-                t_losses, t_low_level_feats, t_high_level_feats, \
+                t_losses, t_low_level_feats_0, t_low_level_feats, t_high_level_feats, \
                     t_layer_cls_scores, t_layer_bbox_preds, t_batch_gt_instances, t_batch_img_metas, \
                         t_labels_list = \
                             self.teacher.distill_loss(inputs, data_samples)
@@ -345,16 +358,23 @@ class DABDETR_distill_new(DABDETR_distill):
                 mask_feats_t = torch.stack(mask_feats_t, dim=0)
                 mask_feats_s = torch.stack(mask_feats_s, dim=0)
 
-                losses_pos_all = self.student.bbox_head.loss_by_feat_distill(
-                    s_layer_cls_scores, s_layer_bbox_preds, mask_feats_s,
-                    t_layer_cls_scores, t_layer_bbox_preds, mask_feats_t,
-                    s_batch_gt_instances, s_batch_img_metas
-                )
-                losses_neg_all = self.student.bbox_head.loss_by_feat_distill(
-                    s_layer_cls_scores, s_layer_bbox_preds, torch.logical_not(mask_feats_s),
-                    t_layer_cls_scores, t_layer_bbox_preds, torch.logical_not(mask_feats_t),
-                    s_batch_gt_instances, s_batch_img_metas
-                )
+                if (self.loss_label_alpha > 1e-9):
+                    losses_pos_all = self.student.bbox_head.loss_by_feat_distill(
+                        s_layer_cls_scores, s_layer_bbox_preds, mask_feats_s,
+                        t_layer_cls_scores, t_layer_bbox_preds, mask_feats_t,
+                        s_batch_gt_instances, s_batch_img_metas
+                    )
+                else:
+                    losses_pos_all = {}
+                
+                if (self.loss_label_neg_alpha > 1e-9):
+                    losses_neg_all = self.student.bbox_head.loss_by_feat_distill(
+                        s_layer_cls_scores, s_layer_bbox_preds, torch.logical_not(mask_feats_s),
+                        t_layer_cls_scores, t_layer_bbox_preds, torch.logical_not(mask_feats_t),
+                        s_batch_gt_instances, s_batch_img_metas
+                    )
+                else:
+                    losses_neg_all = {}
                 
                 def add_suffix(d1, suffix):
                     return {k + suffix: v for k, v in d1.items()}
@@ -370,19 +390,21 @@ class DABDETR_distill_new(DABDETR_distill):
                             **losses_neg_all}
 
             else:
-                s_losses, s_low_level_feats, s_high_level_feats, \
+                s_losses, s_low_level_feats_0, s_low_level_feats, s_high_level_feats, \
                     s_layer_cls_scores, s_layer_bbox_preds, s_batch_gt_instances, s_batch_img_metas, \
                         s_labels_list = \
                             self.student.distill_loss(inputs_fmri, data_samples)
-                t_low_level_feats, t_high_level_feats, = \
+                t_low_level_feats_0, t_low_level_feats, t_high_level_feats, = \
                     self.teacher.distill_loss_onlyfeat(inputs, data_samples)
             
             if (self.teacher_dim != self.student_dim):
-                s_low_level_feats = self.conv1(s_low_level_feats)
+                # s_low_level_feats = self.conv1(s_low_level_feats)
+                s_low_level_feats_0 = self.conv1(s_low_level_feats_0)
                 s_high_level_feats = self.conv2(s_high_level_feats.permute(0, 2, 1)).permute(0, 2, 1)
 
             s_losses['feature_distill_loss'] = self.loss_feature_distill_alpha * \
-                F.mse_loss(s_low_level_feats, t_low_level_feats)
+                F.mse_loss(s_low_level_feats_0, t_low_level_feats)
+                # F.mse_loss(s_low_level_feats, t_low_level_feats)
             s_losses['encoded_feature_distill_loss'] = self.loss_encoded_feature_distill_alpha * \
                 F.mse_loss(s_high_level_feats, t_high_level_feats)
             
