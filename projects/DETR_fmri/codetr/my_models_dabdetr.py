@@ -300,13 +300,15 @@ class DABDETR_distill(BaseDetector):
 class DABDETR_distill_new(DABDETR_distill):
     def __init__(self,
                 teacher_dim = 64,
+                teacher_dim_2 = 256,
                 student_dim = 64,
-                 loss_label_alpha: float = 1.0,
-                 loss_label_neg_alpha = None,
-                 **kwargs):
+                low_level_type = 1, # 1 : with neck, 0 : without neck, 2 : cross
+                loss_label_alpha: float = 1.0,
+                loss_label_neg_alpha = None,
+                **kwargs):
         super().__init__(**kwargs)
         self.loss_label_alpha = loss_label_alpha
-
+        self.low_level_type = low_level_type
         if (loss_label_neg_alpha is not None):
             self.loss_label_neg_alpha = loss_label_neg_alpha
         else:
@@ -314,10 +316,11 @@ class DABDETR_distill_new(DABDETR_distill):
 
         self.background_label = 80
         self.teacher_dim = teacher_dim
+        self.teacher_dim_2 = teacher_dim_2
         self.student_dim = student_dim
         if (teacher_dim != student_dim):
             self.conv1 = nn.Conv2d(student_dim, teacher_dim, 1)
-            self.conv2 = nn.Conv1d(student_dim, teacher_dim, 1)
+            self.conv2 = nn.Conv1d(student_dim, teacher_dim_2, 1)
 
     def forward(self,
                 inputs: torch.Tensor,
@@ -390,23 +393,35 @@ class DABDETR_distill_new(DABDETR_distill):
                             **losses_neg_all}
 
             else:
-                s_losses, s_low_level_feats_0, s_low_level_feats, s_high_level_feats, \
-                    s_layer_cls_scores, s_layer_bbox_preds, s_batch_gt_instances, s_batch_img_metas, \
-                        s_labels_list = \
-                            self.student.distill_loss(inputs_fmri, data_samples)
-                t_low_level_feats_0, t_low_level_feats, t_high_level_feats, = \
-                    self.teacher.distill_loss_onlyfeat(inputs, data_samples)
+                if (self.loss_feature_distill_alpha > 1e-9 or self.loss_encoded_feature_distill_alpha > 1e-9):
+                    s_losses, s_low_level_feats_0, s_low_level_feats, s_high_level_feats, \
+                        s_layer_cls_scores, s_layer_bbox_preds, s_batch_gt_instances, s_batch_img_metas, \
+                            s_labels_list = \
+                                self.student.distill_loss(inputs_fmri, data_samples)
+                    t_low_level_feats_0, t_low_level_feats, t_high_level_feats, = \
+                        self.teacher.distill_loss_onlyfeat(inputs, data_samples)
             
-            if (self.teacher_dim != self.student_dim):
-                # s_low_level_feats = self.conv1(s_low_level_feats)
-                s_low_level_feats_0 = self.conv1(s_low_level_feats_0)
-                s_high_level_feats = self.conv2(s_high_level_feats.permute(0, 2, 1)).permute(0, 2, 1)
+            if (self.loss_feature_distill_alpha > 1e-9 or self.loss_encoded_feature_distill_alpha > 1e-9):
+                if (self.teacher_dim != self.student_dim):
+                    if (self.low_level_type == 1):
+                        s_low_level_feats = self.conv1(s_low_level_feats)
+                    else:
+                        s_low_level_feats_0 = self.conv1(s_low_level_feats_0)
+                    s_high_level_feats = self.conv2(s_high_level_feats.permute(0, 2, 1)).permute(0, 2, 1)
 
-            s_losses['feature_distill_loss'] = self.loss_feature_distill_alpha * \
-                F.mse_loss(s_low_level_feats_0, t_low_level_feats)
-                # F.mse_loss(s_low_level_feats, t_low_level_feats)
-            s_losses['encoded_feature_distill_loss'] = self.loss_encoded_feature_distill_alpha * \
-                F.mse_loss(s_high_level_feats, t_high_level_feats)
+                if (self.low_level_type == 1):
+                    s_losses['feature_distill_loss'] = self.loss_feature_distill_alpha * \
+                        F.mse_loss(s_low_level_feats, t_low_level_feats)
+                elif (self.low_level_type == 0):
+                    s_losses['feature_distill_loss'] = self.loss_feature_distill_alpha * \
+                        F.mse_loss(s_low_level_feats_0, t_low_level_feats_0)
+                elif (self.low_level_type == 2):
+                    s_losses['feature_distill_loss'] = self.loss_feature_distill_alpha * \
+                        F.mse_loss(s_low_level_feats_0, t_low_level_feats)
+
+
+                s_losses['encoded_feature_distill_loss'] = self.loss_encoded_feature_distill_alpha * \
+                    F.mse_loss(s_high_level_feats, t_high_level_feats)
             
             sorted_dict = {k: s_losses[k] for k in sorted(s_losses)}
 
