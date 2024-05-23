@@ -104,7 +104,7 @@ class CocoMetric_modified(CocoMetric):
         # iou_thrs used to compute recall or precision.
         if iou_thrs is None:
             iou_thrs = np.linspace(
-                .5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True)
+                .3, 0.95, int(np.round((0.95 - .3) / .05)) + 1, endpoint=True)
         self.iou_thrs = iou_thrs
         self.metric_items = metric_items
         self.format_only = format_only
@@ -518,8 +518,28 @@ class CocoMetric_modified(CocoMetric):
                 'AR@1000': 8,
                 'AR_s@1000': 9,
                 'AR_m@1000': 10,
-                'AR_l@1000': 11
+                'AR_l@1000': 11,
             }
+            tot = 11
+            for i in range(3):
+                tot += 1
+                coco_metric_names[f'mAP_{30 + i * 20}_L'] = tot
+                tot += 1
+                coco_metric_names[f'mAP_{30 + i * 20}_M'] = tot
+                tot += 1
+                coco_metric_names[f'mAP_{30 + i * 20}_S'] = tot
+                tot += 1
+                coco_metric_names[f'mAP_{30 + i * 20}_A'] = tot
+            for i in range(3):
+                tot += 1
+                coco_metric_names[f'AR_{30 + i * 20}_L'] = tot
+                tot += 1
+                coco_metric_names[f'AR_{30 + i * 20}_M'] = tot
+                tot += 1
+                coco_metric_names[f'AR_{30 + i * 20}_S'] = tot
+                tot += 1
+                coco_metric_names[f'AR_{30 + i * 20}_A'] = tot
+
             metric_items = self.metric_items
             if metric_items is not None:
                 for metric_item in metric_items:
@@ -550,6 +570,7 @@ class CocoMetric_modified(CocoMetric):
                     # Compute per-category AP
                     # from https://github.com/facebookresearch/detectron2/
                     precisions = coco_eval.eval['precision']
+                    recalls = coco_eval.eval['recall']
                     # precision: (iou, recall, cls, area range, max dets)
                     assert len(self.cat_ids) == precisions.shape[2]
 
@@ -588,6 +609,16 @@ class CocoMetric_modified(CocoMetric):
                             else:
                                 ap = float('nan')
                             t.append(f'{round(ap, 3)}')
+                        
+                        # AR50
+                        recall = recalls[(50 - 30) // 5, idx, 0, -1]
+                        recall = recall[recall > -1]
+                        if recall.size:
+                            ar = np.mean(recall)
+                        else:
+                            ar = float('nan')
+                        t.append(f'{round(ar, 3)}')
+
                         results_per_category.append(tuple(t))
 
                     num_columns = len(results_per_category[0])
@@ -595,7 +626,7 @@ class CocoMetric_modified(CocoMetric):
                         itertools.chain(*results_per_category))
                     headers = [
                         'category', 'mAP', 'mAP_50', 'mAP_75', 'mAP_s',
-                        'mAP_m', 'mAP_l'
+                        'mAP_m', 'mAP_l', 'AR_50'
                     ]
                     results_2d = itertools.zip_longest(*[
                         results_flatten[i::num_columns]
@@ -607,19 +638,19 @@ class CocoMetric_modified(CocoMetric):
                     logger.info('\n' + table.table)
 
                 if metric_items is None:
-                    metric_items = [
-                        'mAP', 'mAP_50', 'mAP_75', 'mAP_s', 'mAP_m', 'mAP_l'
-                    ]
+                    metric_items = [key for key in coco_metric_names.keys()]
 
                 for metric_item in metric_items:
                     key = f'{metric}_{metric_item}'
                     val = coco_eval.stats[coco_metric_names[metric_item]]
                     eval_results[key] = float(f'{round(val, 3)}')
 
-                ap = coco_eval.stats[:6]
+                ap = coco_eval.stats
                 logger.info(f'{metric}_mAP_copypaste: {ap[0]:.3f} '
                             f'{ap[1]:.3f} {ap[2]:.3f} {ap[3]:.3f} '
                             f'{ap[4]:.3f} {ap[5]:.3f}')
+                for i in range(len(ap)):
+                    logger.info(f'{metric_items[i]} : {ap[i] : .10f}')
 
         if tmp_dir is not None:
             tmp_dir.cleanup()

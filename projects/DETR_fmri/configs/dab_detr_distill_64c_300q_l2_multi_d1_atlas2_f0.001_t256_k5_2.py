@@ -7,6 +7,10 @@ _base_ = [
     './dab_detr_config_teacher_256c.py'
 ]
 
+# 可视化阈值
+default_hooks = dict(
+    visualization=dict(score_thr = 0.3))
+
 student_config = _base_.student_config
 teacher_config = _base_.teacher_config
 
@@ -19,7 +23,7 @@ student_config.test_cfg.max_per_img = 300
 
 student_config.neck.kernel_size = 5
 
-pretrained_model = '/mnt/workspace/maxinzhu/denghan/FMRIDet/work_dirs/dab_detr_64c/epoch_50.pth'
+pretrained_model = '/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/workdirs/dab_detr_64c/epoch_50.pth'
 
 # student_config.bbox_head.num_classes = 12
 student_config.init_cfg.checkpoint = pretrained_model
@@ -59,7 +63,9 @@ model = dict(
     loss_feature_distill_alpha = 2.0,
     loss_encoded_feature_distill_alpha = 60.0,
     loss_label_alpha = 0,
-    teacher_dim = 256,
+    teacher_dim = 2048,
+    teacher_dim_2 = 256,
+    low_level_type = 2,
     student_dim = 64,
     loss_feature_type = 'L2',
     freeze_student_decoder_bool = False,

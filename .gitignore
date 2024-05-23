@@ -1,5 +1,15 @@
 # my ignore file
 results/
+workdirs/
+code/exp
+code/exp_multi
+code/exp_multi_2
+code/exp_multi_3_4
+code/feature
+code/feature_no_distill
+code/img
+code/intro
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

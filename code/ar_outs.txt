@@ -1,0 +1,80 @@
+person 0.492
+bicycle 0.167
+car 0.203
+motorcycle 0.37
+airplane 0.614
+bus 0.611
+train 0.795
+truck 0.25
+boat 0.395
+traffic light 0.111
+fire hydrant 0.833
+stop sign 0.5
+parking meter 0.0
+bench 0.395
+bird 0.457
+cat 0.594
+dog 0.629
+horse 0.609
+sheep 0.292
+cow 0.553
+elephant 0.745
+bear 0.833
+zebra 0.947
+giraffe 0.686
+backpack 0.093
+umbrella 0.167
+handbag 0.093
+tie 0.222
+suitcase 0.36
+frisbee 0.182
+skis 0.322
+snowboard 0.407
+sports ball 0.125
+kite 0.389
+baseball bat 0.15
+baseball glove 0.083
+skateboard 0.286
+surfboard 0.534
+tennis racket 0.406
+bottle 0.035
+wine glass 0.027
+cup 0.141
+fork 0.0
+knife 0.105
+spoon 0.128
+bowl 0.329
+banana 0.204
+apple 0.14
+sandwich 0.75
+orange 0.208
+broccoli 0.481
+carrot 0.148
+hot dog 0.158
+pizza 0.365
+donut 0.383
+cake 0.444
+chair 0.276
+couch 0.636
+potted plant 0.059
+bed 0.742
+dining table 0.602
+toilet 0.375
+tv 0.529
+laptop 0.483
+mouse 0.227
+remote 0.062
+keyboard 0.333
+cell phone 0.194
+microwave 0.286
+oven 0.56
+toaster 0.0
+sink 0.365
+refrigerator 0.533
+book 0.072
+clock 0.46
+vase 0.218
+scissors 0.4
+teddy bear 0.571
+hair drier 0.0
+toothbrush 0.143

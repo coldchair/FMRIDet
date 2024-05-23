@@ -3,11 +3,11 @@ _base_ = [
 ]
 dataset_type = 'CocoNSDDataset'
 data_root = './'
-image_dir = '../nsd_processed_data/all_images'
+image_dir = '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/all_images'
 
 # default : each sample
 
-SAVE_ROOT_DIR = '../nsd_processed_data'
+SAVE_ROOT_DIR = '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data'
 subj_list = ['subj01', 'subj02', 'subj05', 'subj07']
 
 fmri_prefix_name = []

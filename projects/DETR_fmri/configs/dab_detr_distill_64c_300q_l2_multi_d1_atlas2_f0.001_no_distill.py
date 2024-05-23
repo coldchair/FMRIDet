@@ -19,7 +19,7 @@ student_config.test_cfg.max_per_img = 300
 
 student_config.neck.kernel_size = 5
 
-pretrained_model = '/mnt/workspace/maxinzhu/denghan/FMRIDet/work_dirs/dab_detr_64c/epoch_50.pth'
+pretrained_model = '/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/workdirs/dab_detr_64c/epoch_50.pth'
 
 # student_config.bbox_head.num_classes = 12
 student_config.init_cfg.checkpoint = pretrained_model

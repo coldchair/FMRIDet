@@ -89,6 +89,6 @@ teacher_config = dict(
     test_cfg=dict(max_per_img=300),
     init_cfg = dict(
         type = 'Pretrained',
-        checkpoint = '/mnt/workspace/maxinzhu/denghan/FMRIDet/work_dirs/dab_detr/dab-detr_r50_8xb2-50e_coco_20221122_120837-c1035c8c.pth',
+        checkpoint = '/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/workdirs/dab_detr/dab-detr_r50_8xb2-50e_coco_20221122_120837-c1035c8c.pth',
     ),
 )

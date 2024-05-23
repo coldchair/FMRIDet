@@ -98,10 +98,10 @@ student_config = dict(
         ),
     ),
     test_cfg=dict(max_per_img=300,
-                  nms=dict(type='soft_nms', iou_threshold=0.8)
+                  nms=dict(type='soft_nms', iou_threshold=0.5)
                   ), 
     init_cfg = dict(
         type = 'Pretrained',
-        checkpoint = '/mnt/workspace/maxinzhu/denghan/FMRIDet/work_dirs/dab_detr_64c/epoch_50.pth'
+        checkpoint = '/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/workdirs/dab_detr_64c/epoch_50.pth',
     ),
 )

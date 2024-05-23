@@ -1,6 +1,6 @@
 _base_ = [
     # '../../configs/_base_/datasets/coconsd_detection.py',
-    './dataset_4_20_nofilter_0.01_multi_single_atlas2.py',
+    './dataset_4_20_nofilter_0.001_multi_single_atlas2.py',
     # './dataset_train50.py',
     '../../../configs/_base_/default_runtime.py',
     './dab_detr_config_student_64c.py',

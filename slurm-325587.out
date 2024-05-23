@@ -1,0 +1,1036 @@
+05/17 00:18:45 - mmengine - INFO - 
+------------------------------------------------------------
+System environment:
+    sys.platform: linux
+    Python: 3.10.14 (main, Mar 21 2024, 16:18:23) [GCC 11.2.0]
+    CUDA available: True
+    MUSA available: False
+    numpy_random_seed: 1909029739
+    GPU 0: NVIDIA A100-PCIE-40GB
+    CUDA_HOME: /home/bingxing2/apps/compilers/cuda/cuda-11.8_dev230901
+    NVCC: Cuda compilation tools, release 11.8, V11.8.89
+    GCC: gcc (Kunpeng gcc 1.3.2.b023) 9.3.1
+    PyTorch: 2.1.0+cu118
+    PyTorch compiling details: PyTorch built with:
+  - GCC 9.3
+  - C++ Version: 201703
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - LAPACK is enabled (usually provided by MKL)
+  - NNPACK is enabled
+  - CPU capability usage: NO AVX
+  - CUDA Runtime 11.8
+  - NVCC architecture flags: -gencode;arch=compute_35,code=sm_35;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86;-gencode;arch=compute_89,code=sm_89;-gencode;arch=compute_90,code=sm_90;-gencode;arch=compute_89,code=compute_89;-gencode;arch=compute_90,code=compute_90
+  - CuDNN 8.4  (built against CUDA 11.6)
+  - Build settings: BLAS_INFO=open, BUILD_TYPE=Release, CUDA_VERSION=11.8, CUDNN_VERSION=8.4.0, CXX_COMPILER=/home/bingxing2/apps/compilers/gcc/9.3.0/bin/c++, CXX_FLAGS= -D_GLIBCXX_USE_CXX11_ABI=1 -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -DNDEBUG -DUSE_KINETO -DLIBKINETO_NOROCTRACER -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -O2 -fPIC -Wall -Wextra -Werror=return-type -Werror=non-virtual-dtor -Werror=bool-operation -Wnarrowing -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-unused-parameter -Wno-unused-function -Wno-unused-result -Wno-strict-overflow -Wno-strict-aliasing -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=old-style-cast -Wno-invalid-partial-specialization -Wno-unused-private-field -Wno-aligned-allocation-unavailable -Wno-missing-braces -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Werror=cast-function-type -Wno-stringop-overflow, LAPACK_INFO=open, TORCH_DISABLE_GPU_ASSERTS=ON, TORCH_VERSION=2.1.0, USE_CUDA=ON, USE_CUDNN=ON, USE_EIGEN_FOR_BLAS=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=OFF, USE_MKLDNN=OFF, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, USE_ROCM=OFF, 
+
+    TorchVision: 0.16.0+cu118
+    OpenCV: 4.9.0
+    MMEngine: 0.10.4
+
+Runtime environment:
+    cudnn_benchmark: False
+    mp_cfg: {'mp_start_method': 'fork', 'opencv_num_threads': 0}
+    dist_cfg: {'backend': 'nccl'}
+    seed: 1909029739
+    Distributed launcher: none
+    Distributed training: False
+    GPU number: 1
+------------------------------------------------------------
+
+05/17 00:18:51 - mmengine - INFO - Config:
+SAVE_ROOT_DIR = '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data'
+ann_file = '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/instances_0_73000_0.001.json'
+auto_scale_lr = dict(base_batch_size=16, enable=False)
+backend_args = None
+cht = 256
+custom_hooks = [
+    dict(type='WriteValidationLossHook'),
+]
+custom_imports = dict(
+    allow_failed_imports=False, imports=[
+        'projects.DETR_fmri.codetr',
+    ])
+data_root = './'
+dataloader_type = 'DetDataLoader_fmri'
+dataset_type = 'CocoNSDDataset'
+default_hooks = dict(
+    checkpoint=dict(interval=1, type='CheckpointHook'),
+    logger=dict(interval=50, type='LoggerHook'),
+    param_scheduler=dict(type='ParamSchedulerHook'),
+    sampler_seed=dict(type='DistSamplerSeedHook'),
+    timer=dict(type='IterTimerHook'),
+    visualization=dict(score_thr=0.2, type='DetVisualizationHook'))
+default_scope = 'mmdet'
+env_cfg = dict(
+    cudnn_benchmark=False,
+    dist_cfg=dict(backend='nccl'),
+    mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0))
+fmri_files_path_te = [
+    [
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_early_betas_ave_te.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_ventral_betas_ave_te.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_midventral_betas_ave_te.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_midlateral_betas_ave_te.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_lateral_betas_ave_te.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_parietal_betas_ave_te.npy',
+    ],
+    [],
+    [],
+    [],
+]
+fmri_files_path_tr = [
+    [
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_early_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_ventral_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_midventral_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_midlateral_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_lateral_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_parietal_betas_tr.npy',
+    ],
+    [
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/subj02_early_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/subj02_ventral_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/subj02_midventral_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/subj02_midlateral_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/subj02_lateral_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/subj02_parietal_betas_tr.npy',
+    ],
+    [
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/subj05_early_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/subj05_ventral_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/subj05_midventral_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/subj05_midlateral_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/subj05_lateral_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/subj05_parietal_betas_tr.npy',
+    ],
+    [
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/subj07_early_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/subj07_ventral_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/subj07_midventral_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/subj07_midlateral_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/subj07_lateral_betas_tr.npy',
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/subj07_parietal_betas_tr.npy',
+    ],
+]
+fmri_prefix_name = [
+    '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/nsdgeneral',
+    '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/nsdgeneral',
+    '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/nsdgeneral',
+    '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/nsdgeneral',
+]
+i = 3
+image_dir = '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/all_images'
+index_file_te = [
+    '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/index_ave_te.npy',
+    [],
+    [],
+    [],
+]
+index_file_tr = [
+    '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/index_each_tr.npy',
+    '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/index_each_tr.npy',
+    '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/index_each_tr.npy',
+    '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/index_each_tr.npy',
+]
+input_size = [
+    15724,
+    14278,
+    13039,
+    12682,
+]
+input_size_sum = 55723
+input_type = 'multi_single'
+launcher = 'none'
+load_from = None
+log_level = 'INFO'
+log_processor = dict(by_epoch=True, type='LogProcessor', window_size=50)
+max_epochs = 100
+model = dict(
+    backbone=dict(
+        hidden_dim=4096,
+        input_dim=55723,
+        output_dim=(
+            64,
+            25,
+            25,
+        ),
+        type='Backbone_fmri'),
+    bbox_head=dict(
+        embed_dims=64,
+        loss_bbox=dict(loss_weight=5.0, type='L1Loss'),
+        loss_bbox_distill=dict(loss_weight=5.0, type='L1Loss'),
+        loss_cls=dict(
+            alpha=0.25,
+            gamma=2.0,
+            loss_weight=1.0,
+            type='FocalLoss',
+            use_sigmoid=True),
+        loss_cls_distill=dict(
+            loss_weight=1.0, type='DistillCrossEntropyLoss', use_sigmoid=True),
+        loss_iou=dict(loss_weight=2.0, type='GIoULoss'),
+        loss_iou_distill=dict(loss_weight=2.0, type='GIoULoss'),
+        num_classes=80,
+        type='DABDETRHead_distill'),
+    data_preprocessor=dict(
+        bgr_to_rgb=True,
+        mean=[
+            123.675,
+            116.28,
+            103.53,
+        ],
+        pad_size_divisor=1,
+        std=[
+            58.395,
+            57.12,
+            57.375,
+        ],
+        type='DetDataPreprocessor_fmri'),
+    decoder=dict(
+        layer_cfg=dict(
+            cross_attn_cfg=dict(
+                attn_drop=0.0,
+                cross_attn=True,
+                embed_dims=64,
+                num_heads=8,
+                proj_drop=0.0),
+            ffn_cfg=dict(
+                act_cfg=dict(type='PReLU'),
+                embed_dims=64,
+                feedforward_channels=2048,
+                ffn_drop=0.0,
+                num_fcs=2),
+            self_attn_cfg=dict(
+                attn_drop=0.0,
+                cross_attn=False,
+                embed_dims=64,
+                num_heads=8,
+                proj_drop=0.0)),
+        num_layers=6,
+        query_dim=4,
+        query_scale_type='cond_elewise',
+        return_intermediate=True,
+        with_modulated_hw_attn=True),
+    encoder=dict(
+        layer_cfg=dict(
+            ffn_cfg=dict(
+                act_cfg=dict(type='PReLU'),
+                embed_dims=64,
+                feedforward_channels=2048,
+                ffn_drop=0.0,
+                num_fcs=2),
+            self_attn_cfg=dict(
+                batch_first=True, dropout=0.0, embed_dims=64, num_heads=8)),
+        num_layers=6),
+    init_cfg=dict(
+        checkpoint=
+        '/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/workdirs/dab_detr_64c/epoch_50.pth',
+        type='Pretrained'),
+    neck=dict(
+        act_cfg=None,
+        in_channels=[
+            64,
+        ],
+        kernel_size=5,
+        norm_cfg=None,
+        num_outs=1,
+        out_channels=64,
+        type='ChannelMapper'),
+    num_patterns=0,
+    num_queries=300,
+    positional_encoding=dict(normalize=True, num_feats=32, temperature=20),
+    test_cfg=dict(
+        max_per_img=300, nms=dict(iou_threshold=0.8, type='soft_nms')),
+    train_cfg=dict(
+        assigner=dict(
+            match_costs=[
+                dict(eps=1e-08, type='FocalLossCost', weight=2.0),
+                dict(box_format='xywh', type='BBoxL1Cost', weight=5.0),
+                dict(iou_mode='giou', type='IoUCost', weight=2.0),
+            ],
+            type='HungarianAssigner'),
+        distill_assigner=dict(
+            match_costs=[
+                dict(type='DistillCrossEntropyLossCost', weight=1.0),
+                dict(box_format='xywh', type='BBoxL1Cost', weight=5.0),
+                dict(iou_mode='giou', type='IoUCost', weight=2.0),
+            ],
+            type='HungarianAssigner_distill')),
+    type='DABDETR_student',
+    with_random_refpoints=False)
+optim_wrapper = dict(
+    clip_grad=dict(max_norm=0.1, norm_type=2),
+    optimizer=dict(lr=0.0001, type='AdamW', weight_decay=0.0001),
+    paramwise_cfg=dict(
+        custom_keys=dict(backbone=dict(decay_mult=1.0, lr_mult=0.1))),
+    type='OptimWrapper')
+param_scheduler = [
+    dict(
+        begin=0,
+        by_epoch=True,
+        end=100,
+        gamma=0.1,
+        milestones=[
+            90,
+        ],
+        type='MultiStepLR'),
+]
+pretrained_model = '/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/workdirs/dab_detr_64c/epoch_50.pth'
+resume = True
+roi = 'parietal'
+rois = [
+    'early',
+    'ventral',
+    'midventral',
+    'midlateral',
+    'lateral',
+    'parietal',
+]
+student_config = dict(
+    backbone=dict(
+        hidden_dim=4096,
+        input_dim=55723,
+        output_dim=(
+            64,
+            25,
+            25,
+        ),
+        type='Backbone_fmri'),
+    bbox_head=dict(
+        embed_dims=64,
+        loss_bbox=dict(loss_weight=5.0, type='L1Loss'),
+        loss_bbox_distill=dict(loss_weight=5.0, type='L1Loss'),
+        loss_cls=dict(
+            alpha=0.25,
+            gamma=2.0,
+            loss_weight=1.0,
+            type='FocalLoss',
+            use_sigmoid=True),
+        loss_cls_distill=dict(
+            loss_weight=1.0, type='DistillCrossEntropyLoss', use_sigmoid=True),
+        loss_iou=dict(loss_weight=2.0, type='GIoULoss'),
+        loss_iou_distill=dict(loss_weight=2.0, type='GIoULoss'),
+        num_classes=80,
+        type='DABDETRHead_distill'),
+    data_preprocessor=dict(
+        bgr_to_rgb=True,
+        mean=[
+            123.675,
+            116.28,
+            103.53,
+        ],
+        pad_size_divisor=1,
+        std=[
+            58.395,
+            57.12,
+            57.375,
+        ],
+        type='DetDataPreprocessor_fmri'),
+    decoder=dict(
+        layer_cfg=dict(
+            cross_attn_cfg=dict(
+                attn_drop=0.0,
+                cross_attn=True,
+                embed_dims=64,
+                num_heads=8,
+                proj_drop=0.0),
+            ffn_cfg=dict(
+                act_cfg=dict(type='PReLU'),
+                embed_dims=64,
+                feedforward_channels=2048,
+                ffn_drop=0.0,
+                num_fcs=2),
+            self_attn_cfg=dict(
+                attn_drop=0.0,
+                cross_attn=False,
+                embed_dims=64,
+                num_heads=8,
+                proj_drop=0.0)),
+        num_layers=6,
+        query_dim=4,
+        query_scale_type='cond_elewise',
+        return_intermediate=True,
+        with_modulated_hw_attn=True),
+    encoder=dict(
+        layer_cfg=dict(
+            ffn_cfg=dict(
+                act_cfg=dict(type='PReLU'),
+                embed_dims=64,
+                feedforward_channels=2048,
+                ffn_drop=0.0,
+                num_fcs=2),
+            self_attn_cfg=dict(
+                batch_first=True, dropout=0.0, embed_dims=64, num_heads=8)),
+        num_layers=6),
+    init_cfg=dict(
+        checkpoint=
+        '/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/workdirs/dab_detr_64c/epoch_50.pth',
+        type='Pretrained'),
+    neck=dict(
+        act_cfg=None,
+        in_channels=[
+            64,
+        ],
+        kernel_size=5,
+        norm_cfg=None,
+        num_outs=1,
+        out_channels=64,
+        type='ChannelMapper'),
+    num_patterns=0,
+    num_queries=300,
+    positional_encoding=dict(normalize=True, num_feats=32, temperature=20),
+    test_cfg=dict(
+        max_per_img=300, nms=dict(iou_threshold=0.8, type='soft_nms')),
+    train_cfg=dict(
+        assigner=dict(
+            match_costs=[
+                dict(eps=1e-08, type='FocalLossCost', weight=2.0),
+                dict(box_format='xywh', type='BBoxL1Cost', weight=5.0),
+                dict(iou_mode='giou', type='IoUCost', weight=2.0),
+            ],
+            type='HungarianAssigner'),
+        distill_assigner=dict(
+            match_costs=[
+                dict(type='DistillCrossEntropyLossCost', weight=1.0),
+                dict(box_format='xywh', type='BBoxL1Cost', weight=5.0),
+                dict(iou_mode='giou', type='IoUCost', weight=2.0),
+            ],
+            type='HungarianAssigner_distill')),
+    type='DABDETR_student',
+    with_random_refpoints=False)
+subj = 'subj07'
+subj_list = [
+    'subj01',
+    'subj02',
+    'subj05',
+    'subj07',
+]
+teacher_config = dict(
+    backbone=dict(
+        depth=50,
+        frozen_stages=1,
+        init_cfg=dict(checkpoint='torchvision://resnet50', type='Pretrained'),
+        norm_cfg=dict(requires_grad=False, type='BN'),
+        norm_eval=True,
+        num_stages=4,
+        out_indices=(3, ),
+        style='pytorch',
+        type='ResNet'),
+    bbox_head=dict(
+        embed_dims=256,
+        loss_bbox=dict(loss_weight=5.0, type='L1Loss'),
+        loss_cls=dict(
+            alpha=0.25,
+            gamma=2.0,
+            loss_weight=1.0,
+            type='FocalLoss',
+            use_sigmoid=True),
+        loss_iou=dict(loss_weight=2.0, type='GIoULoss'),
+        num_classes=80,
+        type='DABDETRHead_distill'),
+    data_preprocessor=dict(
+        bgr_to_rgb=True,
+        mean=[
+            123.675,
+            116.28,
+            103.53,
+        ],
+        pad_size_divisor=1,
+        std=[
+            58.395,
+            57.12,
+            57.375,
+        ],
+        type='DetDataPreprocessor_fmri'),
+    decoder=dict(
+        layer_cfg=dict(
+            cross_attn_cfg=dict(
+                attn_drop=0.0,
+                cross_attn=True,
+                embed_dims=256,
+                num_heads=8,
+                proj_drop=0.0),
+            ffn_cfg=dict(
+                act_cfg=dict(type='PReLU'),
+                embed_dims=256,
+                feedforward_channels=2048,
+                ffn_drop=0.0,
+                num_fcs=2),
+            self_attn_cfg=dict(
+                attn_drop=0.0,
+                cross_attn=False,
+                embed_dims=256,
+                num_heads=8,
+                proj_drop=0.0)),
+        num_layers=6,
+        query_dim=4,
+        query_scale_type='cond_elewise',
+        return_intermediate=True,
+        with_modulated_hw_attn=True),
+    encoder=dict(
+        layer_cfg=dict(
+            ffn_cfg=dict(
+                act_cfg=dict(type='PReLU'),
+                embed_dims=256,
+                feedforward_channels=2048,
+                ffn_drop=0.0,
+                num_fcs=2),
+            self_attn_cfg=dict(
+                batch_first=True, dropout=0.0, embed_dims=256, num_heads=8)),
+        num_layers=6),
+    init_cfg=dict(
+        checkpoint=
+        '/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/workdirs/dab_detr/dab-detr_r50_8xb2-50e_coco_20221122_120837-c1035c8c.pth',
+        type='Pretrained'),
+    neck=dict(
+        act_cfg=None,
+        in_channels=[
+            2048,
+        ],
+        kernel_size=1,
+        norm_cfg=None,
+        num_outs=1,
+        out_channels=256,
+        type='ChannelMapper'),
+    num_patterns=0,
+    num_queries=300,
+    positional_encoding=dict(normalize=True, num_feats=128, temperature=20),
+    test_cfg=dict(max_per_img=300),
+    train_cfg=dict(
+        assigner=dict(
+            match_costs=[
+                dict(eps=1e-08, type='FocalLossCost', weight=2.0),
+                dict(box_format='xywh', type='BBoxL1Cost', weight=5.0),
+                dict(iou_mode='giou', type='IoUCost', weight=2.0),
+            ],
+            type='HungarianAssigner')),
+    type='DABDETR_teacher',
+    with_random_refpoints=False)
+test_cfg = dict(type='TestLoop')
+test_dataloader = dict(
+    batch_size=8,
+    dataset=dict(
+        ann_file=
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/instances_0_73000_0.001.json',
+        backend_args=None,
+        data_prefix=dict(
+            img=
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/all_images'
+        ),
+        data_root='./',
+        fmri_files_path=[
+            [
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_early_betas_ave_te.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_ventral_betas_ave_te.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_midventral_betas_ave_te.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_midlateral_betas_ave_te.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_lateral_betas_ave_te.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_parietal_betas_ave_te.npy',
+            ],
+            [],
+            [],
+            [],
+        ],
+        fmri_prefix_name=[
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/nsdgeneral',
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/nsdgeneral',
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/nsdgeneral',
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/nsdgeneral',
+        ],
+        fmri_suffix_name='ave_te_',
+        index_file=[
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/index_ave_te.npy',
+            [],
+            [],
+            [],
+        ],
+        input_size=[
+            15724,
+            14278,
+            13039,
+            12682,
+        ],
+        input_type='multi_single',
+        pipeline=[
+            dict(backend_args=None, type='LoadfMRIFromFile'),
+            dict(backend_args=None, type='LoadImageFromFile'),
+            dict(keep_ratio=True, scale=(
+                1333,
+                800,
+            ), type='Resize'),
+            dict(type='LoadAnnotations', with_bbox=True),
+            dict(
+                meta_keys=(
+                    'img_id',
+                    'img_path',
+                    'ori_shape',
+                    'img_shape',
+                    'scale_factor',
+                ),
+                type='PackDetInputs_fmri'),
+        ],
+        test_mode=True,
+        type='CocoNSDDataset'),
+    drop_last=False,
+    num_workers=4,
+    persistent_workers=True,
+    sampler=dict(shuffle=False, type='DefaultSampler'))
+test_evaluator = dict(
+    ann_file=
+    '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/instances_0_73000_0.01.json',
+    backend_args=None,
+    classwise=True,
+    format_only=False,
+    metric='bbox',
+    type='CocoMetric_modified')
+test_pipeline = [
+    dict(backend_args=None, type='LoadfMRIFromFile'),
+    dict(backend_args=None, type='LoadImageFromFile'),
+    dict(keep_ratio=True, scale=(
+        1333,
+        800,
+    ), type='Resize'),
+    dict(type='LoadAnnotations', with_bbox=True),
+    dict(
+        meta_keys=(
+            'img_id',
+            'img_path',
+            'ori_shape',
+            'img_shape',
+            'scale_factor',
+        ),
+        type='PackDetInputs_fmri'),
+]
+train_cfg = dict(max_epochs=100, type='EpochBasedTrainLoop', val_interval=1)
+train_dataloader = dict(
+    batch_sampler=dict(type='AspectRatioBatchSampler'),
+    batch_size=8,
+    dataset=dict(
+        ann_file=
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/instances_0_73000_0.001.json',
+        backend_args=None,
+        data_prefix=dict(
+            img=
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/all_images'
+        ),
+        data_root='./',
+        filter_cfg=dict(filter_empty_gt=True, min_size=32),
+        fmri_files_path=[
+            [
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_early_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_ventral_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_midventral_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_midlateral_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_lateral_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_parietal_betas_tr.npy',
+            ],
+            [
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/subj02_early_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/subj02_ventral_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/subj02_midventral_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/subj02_midlateral_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/subj02_lateral_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/subj02_parietal_betas_tr.npy',
+            ],
+            [
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/subj05_early_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/subj05_ventral_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/subj05_midventral_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/subj05_midlateral_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/subj05_lateral_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/subj05_parietal_betas_tr.npy',
+            ],
+            [
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/subj07_early_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/subj07_ventral_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/subj07_midventral_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/subj07_midlateral_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/subj07_lateral_betas_tr.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/subj07_parietal_betas_tr.npy',
+            ],
+        ],
+        fmri_prefix_name=[
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/nsdgeneral',
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/nsdgeneral',
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/nsdgeneral',
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/nsdgeneral',
+        ],
+        fmri_suffix_name='tr_',
+        index_file=[
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/index_each_tr.npy',
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/index_each_tr.npy',
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/index_each_tr.npy',
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/index_each_tr.npy',
+        ],
+        input_size=[
+            15724,
+            14278,
+            13039,
+            12682,
+        ],
+        input_type='multi_single',
+        pipeline=[
+            dict(backend_args=None, type='LoadfMRIFromFile'),
+            dict(backend_args=None, type='LoadImageFromFile'),
+            dict(type='LoadAnnotations', with_bbox=True),
+            dict(keep_ratio=True, scale=(
+                1333,
+                800,
+            ), type='Resize'),
+            dict(type='PackDetInputs_fmri'),
+        ],
+        type='CocoNSDDataset'),
+    num_workers=4,
+    persistent_workers=True,
+    sampler=dict(shuffle=True, type='DefaultSampler'))
+train_pipeline = [
+    dict(backend_args=None, type='LoadfMRIFromFile'),
+    dict(backend_args=None, type='LoadImageFromFile'),
+    dict(type='LoadAnnotations', with_bbox=True),
+    dict(keep_ratio=True, scale=(
+        1333,
+        800,
+    ), type='Resize'),
+    dict(type='PackDetInputs_fmri'),
+]
+val_cfg = dict(type='ValLoop')
+val_dataloader = dict(
+    batch_size=8,
+    dataset=dict(
+        ann_file=
+        '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/instances_0_73000_0.001.json',
+        backend_args=None,
+        data_prefix=dict(
+            img=
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/all_images'
+        ),
+        data_root='./',
+        fmri_files_path=[
+            [
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_early_betas_ave_te.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_ventral_betas_ave_te.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_midventral_betas_ave_te.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_midlateral_betas_ave_te.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_lateral_betas_ave_te.npy',
+                '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/subj01_parietal_betas_ave_te.npy',
+            ],
+            [],
+            [],
+            [],
+        ],
+        fmri_prefix_name=[
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/nsdgeneral',
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj02/nsdgeneral',
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj05/nsdgeneral',
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj07/nsdgeneral',
+        ],
+        fmri_suffix_name='ave_te_',
+        index_file=[
+            '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/mrifeat/subj01/index_ave_te.npy',
+            [],
+            [],
+            [],
+        ],
+        input_size=[
+            15724,
+            14278,
+            13039,
+            12682,
+        ],
+        input_type='multi_single',
+        pipeline=[
+            dict(backend_args=None, type='LoadfMRIFromFile'),
+            dict(backend_args=None, type='LoadImageFromFile'),
+            dict(keep_ratio=True, scale=(
+                1333,
+                800,
+            ), type='Resize'),
+            dict(type='LoadAnnotations', with_bbox=True),
+            dict(
+                meta_keys=(
+                    'img_id',
+                    'img_path',
+                    'ori_shape',
+                    'img_shape',
+                    'scale_factor',
+                ),
+                type='PackDetInputs_fmri'),
+        ],
+        test_mode=True,
+        type='CocoNSDDataset'),
+    drop_last=False,
+    num_workers=4,
+    persistent_workers=True,
+    sampler=dict(shuffle=False, type='DefaultSampler'))
+val_evaluator = dict(
+    ann_file=
+    '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/instances_0_73000_0.001.json',
+    backend_args=None,
+    classwise=True,
+    format_only=False,
+    metric='bbox',
+    type='CocoMetric_modified')
+vis_backends = [
+    dict(type='TensorboardVisBackend'),
+    dict(type='LocalVisBackend'),
+]
+visualizer = dict(
+    name='visualizer',
+    type='DetLocalVisualizer',
+    vis_backends=[
+        dict(type='TensorboardVisBackend'),
+        dict(type='LocalVisBackend'),
+    ])
+work_dir = './work_dirs/dab_detr_distill_64c_300q_l2_multi_d1_atlas2_f0.001_no_distill'
+
+05/17 00:19:07 - mmengine - INFO - Distributed training is not used, all SyncBatchNorm (SyncBN) layers in the model will be automatically reverted to BatchNormXd layers if they are used.
+05/17 00:19:07 - mmengine - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) WriteValidationLossHook            
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+before_train:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DistSamplerSeedHook                
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) IterTimerHook                      
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_val:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+before_val_epoch:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+before_val_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DetVisualizationHook               
+(NORMAL      ) WriteValidationLossHook            
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_val_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_val:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+after_train:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_test:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+before_test_epoch:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+before_test_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_test_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DetVisualizationHook               
+(NORMAL      ) WriteValidationLossHook            
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_test_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_test:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+after_run:
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+loading annotations into memory...
+Done (t=10.78s)
+creating index...
+index created!
+i : 0, len : 24980
+i : 1, len : 24980
+i : 2, len : 24980
+i : 3, len : 24980
+img_ids : 99920
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.fc.weight:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.fc.weight:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.fc.weight:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.fc.weight:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.fc.bias:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.fc.bias:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.fc.bias:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.fc.bias:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.0.0.weight:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.0.0.weight:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.0.0.weight:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.0.0.weight:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.0.0.bias:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.0.0.bias:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.0.0.bias:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.0.0.bias:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.0.1.weight:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.0.1.weight:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.0.1.weight:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.0.1.weight:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.0.1.bias:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.0.1.bias:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.0.1.bias:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.0.1.bias:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.1.0.weight:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.1.0.weight:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.1.0.weight:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.1.0.weight:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.1.0.bias:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.1.0.bias:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.1.0.bias:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.1.0.bias:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.1.1.weight:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.1.1.weight:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.1.1.weight:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.1.1.weight:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.1.1.bias:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.1.1.bias:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.1.1.bias:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.1.1.bias:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.2.0.weight:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.2.0.weight:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.2.0.weight:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.2.0.weight:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.2.0.bias:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.2.0.bias:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.2.0.bias:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.2.0.bias:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.2.1.weight:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.2.1.weight:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.2.1.weight:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.2.1.weight:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.2.1.bias:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.2.1.bias:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.2.1.bias:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.2.1.bias:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.3.0.weight:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.3.0.weight:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.3.0.weight:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.3.0.weight:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.3.0.bias:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.3.0.bias:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.3.0.bias:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.3.0.bias:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.3.1.weight:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.3.1.weight:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.3.1.weight:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.3.1.weight:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.3.1.bias:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.3.1.bias:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.3.1.bias:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.block.3.1.bias:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.fc2.weight:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.fc2.weight:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.fc2.weight:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.fc2.weight:decay_mult=1.0
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.fc2.bias:lr=1e-05
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.fc2.bias:weight_decay=0.0001
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.fc2.bias:lr_mult=0.1
+05/17 00:19:35 - mmengine - INFO - paramwise_options -- backbone.fc2.bias:decay_mult=1.0
+loading annotations into memory...
+Done (t=10.62s)
+creating index...
+index created!
+i : 0, len : 982
+img_ids : 982
+loading annotations into memory...
+Done (t=10.84s)
+creating index...
+index created!
+05/17 00:20:06 - mmengine - INFO - load model from: /home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/workdirs/dab_detr_64c/epoch_50.pth
+05/17 00:20:06 - mmengine - INFO - Loads checkpoint by local backend from path: /home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/workdirs/dab_detr_64c/epoch_50.pth
+05/17 00:20:07 - mmengine - WARNING - The model and loaded state dict do not match exactly
+
+size mismatch for neck.convs.0.conv.weight: copying a param with shape torch.Size([64, 2048, 1, 1]) from checkpoint, the shape in current model is torch.Size([64, 64, 5, 5]).
+unexpected key in source state_dict: backbone.conv1.weight, backbone.bn1.weight, backbone.bn1.bias, backbone.bn1.running_mean, backbone.bn1.running_var, backbone.bn1.num_batches_tracked, backbone.layer1.0.conv1.weight, backbone.layer1.0.bn1.weight, backbone.layer1.0.bn1.bias, backbone.layer1.0.bn1.running_mean, backbone.layer1.0.bn1.running_var, backbone.layer1.0.bn1.num_batches_tracked, backbone.layer1.0.conv2.weight, backbone.layer1.0.bn2.weight, backbone.layer1.0.bn2.bias, backbone.layer1.0.bn2.running_mean, backbone.layer1.0.bn2.running_var, backbone.layer1.0.bn2.num_batches_tracked, backbone.layer1.0.conv3.weight, backbone.layer1.0.bn3.weight, backbone.layer1.0.bn3.bias, backbone.layer1.0.bn3.running_mean, backbone.layer1.0.bn3.running_var, backbone.layer1.0.bn3.num_batches_tracked, backbone.layer1.0.downsample.0.weight, backbone.layer1.0.downsample.1.weight, backbone.layer1.0.downsample.1.bias, backbone.layer1.0.downsample.1.running_mean, backbone.layer1.0.downsample.1.running_var, backbone.layer1.0.downsample.1.num_batches_tracked, backbone.layer1.1.conv1.weight, backbone.layer1.1.bn1.weight, backbone.layer1.1.bn1.bias, backbone.layer1.1.bn1.running_mean, backbone.layer1.1.bn1.running_var, backbone.layer1.1.bn1.num_batches_tracked, backbone.layer1.1.conv2.weight, backbone.layer1.1.bn2.weight, backbone.layer1.1.bn2.bias, backbone.layer1.1.bn2.running_mean, backbone.layer1.1.bn2.running_var, backbone.layer1.1.bn2.num_batches_tracked, backbone.layer1.1.conv3.weight, backbone.layer1.1.bn3.weight, backbone.layer1.1.bn3.bias, backbone.layer1.1.bn3.running_mean, backbone.layer1.1.bn3.running_var, backbone.layer1.1.bn3.num_batches_tracked, backbone.layer1.2.conv1.weight, backbone.layer1.2.bn1.weight, backbone.layer1.2.bn1.bias, backbone.layer1.2.bn1.running_mean, backbone.layer1.2.bn1.running_var, backbone.layer1.2.bn1.num_batches_tracked, backbone.layer1.2.conv2.weight, backbone.layer1.2.bn2.weight, backbone.layer1.2.bn2.bias, backbone.layer1.2.bn2.running_mean, backbone.layer1.2.bn2.running_var, backbone.layer1.2.bn2.num_batches_tracked, backbone.layer1.2.conv3.weight, backbone.layer1.2.bn3.weight, backbone.layer1.2.bn3.bias, backbone.layer1.2.bn3.running_mean, backbone.layer1.2.bn3.running_var, backbone.layer1.2.bn3.num_batches_tracked, backbone.layer2.0.conv1.weight, backbone.layer2.0.bn1.weight, backbone.layer2.0.bn1.bias, backbone.layer2.0.bn1.running_mean, backbone.layer2.0.bn1.running_var, backbone.layer2.0.bn1.num_batches_tracked, backbone.layer2.0.conv2.weight, backbone.layer2.0.bn2.weight, backbone.layer2.0.bn2.bias, backbone.layer2.0.bn2.running_mean, backbone.layer2.0.bn2.running_var, backbone.layer2.0.bn2.num_batches_tracked, backbone.layer2.0.conv3.weight, backbone.layer2.0.bn3.weight, backbone.layer2.0.bn3.bias, backbone.layer2.0.bn3.running_mean, backbone.layer2.0.bn3.running_var, backbone.layer2.0.bn3.num_batches_tracked, backbone.layer2.0.downsample.0.weight, backbone.layer2.0.downsample.1.weight, backbone.layer2.0.downsample.1.bias, backbone.layer2.0.downsample.1.running_mean, backbone.layer2.0.downsample.1.running_var, backbone.layer2.0.downsample.1.num_batches_tracked, backbone.layer2.1.conv1.weight, backbone.layer2.1.bn1.weight, backbone.layer2.1.bn1.bias, backbone.layer2.1.bn1.running_mean, backbone.layer2.1.bn1.running_var, backbone.layer2.1.bn1.num_batches_tracked, backbone.layer2.1.conv2.weight, backbone.layer2.1.bn2.weight, backbone.layer2.1.bn2.bias, backbone.layer2.1.bn2.running_mean, backbone.layer2.1.bn2.running_var, backbone.layer2.1.bn2.num_batches_tracked, backbone.layer2.1.conv3.weight, backbone.layer2.1.bn3.weight, backbone.layer2.1.bn3.bias, backbone.layer2.1.bn3.running_mean, backbone.layer2.1.bn3.running_var, backbone.layer2.1.bn3.num_batches_tracked, backbone.layer2.2.conv1.weight, backbone.layer2.2.bn1.weight, backbone.layer2.2.bn1.bias, backbone.layer2.2.bn1.running_mean, backbone.layer2.2.bn1.running_var, backbone.layer2.2.bn1.num_batches_tracked, backbone.layer2.2.conv2.weight, backbone.layer2.2.bn2.weight, backbone.layer2.2.bn2.bias, backbone.layer2.2.bn2.running_mean, backbone.layer2.2.bn2.running_var, backbone.layer2.2.bn2.num_batches_tracked, backbone.layer2.2.conv3.weight, backbone.layer2.2.bn3.weight, backbone.layer2.2.bn3.bias, backbone.layer2.2.bn3.running_mean, backbone.layer2.2.bn3.running_var, backbone.layer2.2.bn3.num_batches_tracked, backbone.layer2.3.conv1.weight, backbone.layer2.3.bn1.weight, backbone.layer2.3.bn1.bias, backbone.layer2.3.bn1.running_mean, backbone.layer2.3.bn1.running_var, backbone.layer2.3.bn1.num_batches_tracked, backbone.layer2.3.conv2.weight, backbone.layer2.3.bn2.weight, backbone.layer2.3.bn2.bias, backbone.layer2.3.bn2.running_mean, backbone.layer2.3.bn2.running_var, backbone.layer2.3.bn2.num_batches_tracked, backbone.layer2.3.conv3.weight, backbone.layer2.3.bn3.weight, backbone.layer2.3.bn3.bias, backbone.layer2.3.bn3.running_mean, backbone.layer2.3.bn3.running_var, backbone.layer2.3.bn3.num_batches_tracked, backbone.layer3.0.conv1.weight, backbone.layer3.0.bn1.weight, backbone.layer3.0.bn1.bias, backbone.layer3.0.bn1.running_mean, backbone.layer3.0.bn1.running_var, backbone.layer3.0.bn1.num_batches_tracked, backbone.layer3.0.conv2.weight, backbone.layer3.0.bn2.weight, backbone.layer3.0.bn2.bias, backbone.layer3.0.bn2.running_mean, backbone.layer3.0.bn2.running_var, backbone.layer3.0.bn2.num_batches_tracked, backbone.layer3.0.conv3.weight, backbone.layer3.0.bn3.weight, backbone.layer3.0.bn3.bias, backbone.layer3.0.bn3.running_mean, backbone.layer3.0.bn3.running_var, backbone.layer3.0.bn3.num_batches_tracked, backbone.layer3.0.downsample.0.weight, backbone.layer3.0.downsample.1.weight, backbone.layer3.0.downsample.1.bias, backbone.layer3.0.downsample.1.running_mean, backbone.layer3.0.downsample.1.running_var, backbone.layer3.0.downsample.1.num_batches_tracked, backbone.layer3.1.conv1.weight, backbone.layer3.1.bn1.weight, backbone.layer3.1.bn1.bias, backbone.layer3.1.bn1.running_mean, backbone.layer3.1.bn1.running_var, backbone.layer3.1.bn1.num_batches_tracked, backbone.layer3.1.conv2.weight, backbone.layer3.1.bn2.weight, backbone.layer3.1.bn2.bias, backbone.layer3.1.bn2.running_mean, backbone.layer3.1.bn2.running_var, backbone.layer3.1.bn2.num_batches_tracked, backbone.layer3.1.conv3.weight, backbone.layer3.1.bn3.weight, backbone.layer3.1.bn3.bias, backbone.layer3.1.bn3.running_mean, backbone.layer3.1.bn3.running_var, backbone.layer3.1.bn3.num_batches_tracked, backbone.layer3.2.conv1.weight, backbone.layer3.2.bn1.weight, backbone.layer3.2.bn1.bias, backbone.layer3.2.bn1.running_mean, backbone.layer3.2.bn1.running_var, backbone.layer3.2.bn1.num_batches_tracked, backbone.layer3.2.conv2.weight, backbone.layer3.2.bn2.weight, backbone.layer3.2.bn2.bias, backbone.layer3.2.bn2.running_mean, backbone.layer3.2.bn2.running_var, backbone.layer3.2.bn2.num_batches_tracked, backbone.layer3.2.conv3.weight, backbone.layer3.2.bn3.weight, backbone.layer3.2.bn3.bias, backbone.layer3.2.bn3.running_mean, backbone.layer3.2.bn3.running_var, backbone.layer3.2.bn3.num_batches_tracked, backbone.layer3.3.conv1.weight, backbone.layer3.3.bn1.weight, backbone.layer3.3.bn1.bias, backbone.layer3.3.bn1.running_mean, backbone.layer3.3.bn1.running_var, backbone.layer3.3.bn1.num_batches_tracked, backbone.layer3.3.conv2.weight, backbone.layer3.3.bn2.weight, backbone.layer3.3.bn2.bias, backbone.layer3.3.bn2.running_mean, backbone.layer3.3.bn2.running_var, backbone.layer3.3.bn2.num_batches_tracked, backbone.layer3.3.conv3.weight, backbone.layer3.3.bn3.weight, backbone.layer3.3.bn3.bias, backbone.layer3.3.bn3.running_mean, backbone.layer3.3.bn3.running_var, backbone.layer3.3.bn3.num_batches_tracked, backbone.layer3.4.conv1.weight, backbone.layer3.4.bn1.weight, backbone.layer3.4.bn1.bias, backbone.layer3.4.bn1.running_mean, backbone.layer3.4.bn1.running_var, backbone.layer3.4.bn1.num_batches_tracked, backbone.layer3.4.conv2.weight, backbone.layer3.4.bn2.weight, backbone.layer3.4.bn2.bias, backbone.layer3.4.bn2.running_mean, backbone.layer3.4.bn2.running_var, backbone.layer3.4.bn2.num_batches_tracked, backbone.layer3.4.conv3.weight, backbone.layer3.4.bn3.weight, backbone.layer3.4.bn3.bias, backbone.layer3.4.bn3.running_mean, backbone.layer3.4.bn3.running_var, backbone.layer3.4.bn3.num_batches_tracked, backbone.layer3.5.conv1.weight, backbone.layer3.5.bn1.weight, backbone.layer3.5.bn1.bias, backbone.layer3.5.bn1.running_mean, backbone.layer3.5.bn1.running_var, backbone.layer3.5.bn1.num_batches_tracked, backbone.layer3.5.conv2.weight, backbone.layer3.5.bn2.weight, backbone.layer3.5.bn2.bias, backbone.layer3.5.bn2.running_mean, backbone.layer3.5.bn2.running_var, backbone.layer3.5.bn2.num_batches_tracked, backbone.layer3.5.conv3.weight, backbone.layer3.5.bn3.weight, backbone.layer3.5.bn3.bias, backbone.layer3.5.bn3.running_mean, backbone.layer3.5.bn3.running_var, backbone.layer3.5.bn3.num_batches_tracked, backbone.layer4.0.conv1.weight, backbone.layer4.0.bn1.weight, backbone.layer4.0.bn1.bias, backbone.layer4.0.bn1.running_mean, backbone.layer4.0.bn1.running_var, backbone.layer4.0.bn1.num_batches_tracked, backbone.layer4.0.conv2.weight, backbone.layer4.0.bn2.weight, backbone.layer4.0.bn2.bias, backbone.layer4.0.bn2.running_mean, backbone.layer4.0.bn2.running_var, backbone.layer4.0.bn2.num_batches_tracked, backbone.layer4.0.conv3.weight, backbone.layer4.0.bn3.weight, backbone.layer4.0.bn3.bias, backbone.layer4.0.bn3.running_mean, backbone.layer4.0.bn3.running_var, backbone.layer4.0.bn3.num_batches_tracked, backbone.layer4.0.downsample.0.weight, backbone.layer4.0.downsample.1.weight, backbone.layer4.0.downsample.1.bias, backbone.layer4.0.downsample.1.running_mean, backbone.layer4.0.downsample.1.running_var, backbone.layer4.0.downsample.1.num_batches_tracked, backbone.layer4.1.conv1.weight, backbone.layer4.1.bn1.weight, backbone.layer4.1.bn1.bias, backbone.layer4.1.bn1.running_mean, backbone.layer4.1.bn1.running_var, backbone.layer4.1.bn1.num_batches_tracked, backbone.layer4.1.conv2.weight, backbone.layer4.1.bn2.weight, backbone.layer4.1.bn2.bias, backbone.layer4.1.bn2.running_mean, backbone.layer4.1.bn2.running_var, backbone.layer4.1.bn2.num_batches_tracked, backbone.layer4.1.conv3.weight, backbone.layer4.1.bn3.weight, backbone.layer4.1.bn3.bias, backbone.layer4.1.bn3.running_mean, backbone.layer4.1.bn3.running_var, backbone.layer4.1.bn3.num_batches_tracked, backbone.layer4.2.conv1.weight, backbone.layer4.2.bn1.weight, backbone.layer4.2.bn1.bias, backbone.layer4.2.bn1.running_mean, backbone.layer4.2.bn1.running_var, backbone.layer4.2.bn1.num_batches_tracked, backbone.layer4.2.conv2.weight, backbone.layer4.2.bn2.weight, backbone.layer4.2.bn2.bias, backbone.layer4.2.bn2.running_mean, backbone.layer4.2.bn2.running_var, backbone.layer4.2.bn2.num_batches_tracked, backbone.layer4.2.conv3.weight, backbone.layer4.2.bn3.weight, backbone.layer4.2.bn3.bias, backbone.layer4.2.bn3.running_mean, backbone.layer4.2.bn3.running_var, backbone.layer4.2.bn3.num_batches_tracked
+
+missing keys in source state_dict: backbone.fc.weight, backbone.fc.bias, backbone.block.0.0.weight, backbone.block.0.0.bias, backbone.block.0.1.weight, backbone.block.0.1.bias, backbone.block.1.0.weight, backbone.block.1.0.bias, backbone.block.1.1.weight, backbone.block.1.1.bias, backbone.block.2.0.weight, backbone.block.2.0.bias, backbone.block.2.1.weight, backbone.block.2.1.bias, backbone.block.3.0.weight, backbone.block.3.0.bias, backbone.block.3.1.weight, backbone.block.3.1.bias, backbone.fc2.weight, backbone.fc2.bias
+
+Did not find last_checkpoint to be resumed.
+05/17 00:20:07 - mmengine - INFO - Auto resumed from the latest checkpoint None.
+05/17 00:20:07 - mmengine - WARNING - "FileClient" will be deprecated in future. Please use io functions in https://mmengine.readthedocs.io/en/latest/api/fileio.html#file-io
+05/17 00:20:07 - mmengine - WARNING - "HardDiskBackend" is the alias of "LocalBackend" and the former will be deprecated in future.
+05/17 00:20:07 - mmengine - INFO - Checkpoints will be saved to /home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/work_dirs/dab_detr_distill_64c_300q_l2_multi_d1_atlas2_f0.001_no_distill.
+/home/bingxing2/ailab/scx7kzd/.conda/envs/fmridet/lib/python3.10/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at /home/bingxing2/home/scx6001/luym/pytorch/aten/src/ATen/native/TensorShape.cpp:3526.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Traceback (most recent call last):
+  File "/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/./tools/train.py", line 121, in <module>
+    main()
+  File "/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/./tools/train.py", line 117, in main
+    runner.train()
+  File "/home/bingxing2/ailab/scx7kzd/.conda/envs/fmridet/lib/python3.10/site-packages/mmengine/runner/runner.py", line 1777, in train
+    model = self.train_loop.run()  # type: ignore
+  File "/home/bingxing2/ailab/scx7kzd/.conda/envs/fmridet/lib/python3.10/site-packages/mmengine/runner/loops.py", line 96, in run
+    self.run_epoch()
+  File "/home/bingxing2/ailab/scx7kzd/.conda/envs/fmridet/lib/python3.10/site-packages/mmengine/runner/loops.py", line 113, in run_epoch
+    self.run_iter(idx, data_batch)
+  File "/home/bingxing2/ailab/scx7kzd/.conda/envs/fmridet/lib/python3.10/site-packages/mmengine/runner/loops.py", line 129, in run_iter
+    outputs = self.runner.model.train_step(
+  File "/home/bingxing2/ailab/scx7kzd/.conda/envs/fmridet/lib/python3.10/site-packages/mmengine/model/base_model/base_model.py", line 114, in train_step
+    losses = self._run_forward(data, mode='loss')  # type: ignore
+  File "/home/bingxing2/ailab/scx7kzd/.conda/envs/fmridet/lib/python3.10/site-packages/mmengine/model/base_model/base_model.py", line 361, in _run_forward
+    results = self(**data, mode=mode)
+  File "/home/bingxing2/ailab/scx7kzd/.conda/envs/fmridet/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/bingxing2/ailab/scx7kzd/.conda/envs/fmridet/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/projects/DETR_fmri/codetr/my_models_dabdetr.py", line 142, in forward
+    return super().forward(inputs_fmri, data_samples, mode)
+  File "/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/mmdet/models/detectors/base.py", line 92, in forward
+    return self.loss(inputs, data_samples)
+  File "/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/mmdet/models/detectors/base_detr.py", line 101, in loss
+    losses = self.bbox_head.loss(
+  File "/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/mmdet/models/dense_heads/conditional_detr_head.py", line 94, in loss
+    losses = self.loss_by_feat(*loss_inputs)
+  File "/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/mmdet/models/dense_heads/detr_head.py", line 229, in loss_by_feat
+    losses_cls, losses_bbox, losses_iou = multi_apply(
+  File "/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/mmdet/models/utils/misc.py", line 219, in multi_apply
+    return tuple(map(list, zip(*map_results)))
+  File "/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/mmdet/models/dense_heads/detr_head.py", line 313, in loss_by_feat_single
+    loss_cls = self.loss_cls(
+  File "/home/bingxing2/ailab/scx7kzd/.conda/envs/fmridet/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/bingxing2/ailab/scx7kzd/.conda/envs/fmridet/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/mmdet/models/losses/focal_loss.py", line 243, in forward
+    loss_cls = self.loss_weight * calculate_loss_func(
+  File "/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/mmdet/models/losses/focal_loss.py", line 144, in sigmoid_focal_loss
+    loss = _sigmoid_focal_loss(pred.contiguous(), target.contiguous(), gamma,
+  File "/home/bingxing2/ailab/scx7kzd/.conda/envs/fmridet/lib/python3.10/site-packages/torch/autograd/function.py", line 539, in apply
+    return super().apply(*args, **kwargs)  # type: ignore[misc]
+  File "/home/bingxing2/ailab/scx7kzd/.conda/envs/fmridet/lib/python3.10/site-packages/mmcv/ops/focal_loss.py", line 46, in forward
+    ext_module.sigmoid_focal_loss_forward(
+RuntimeError: sigmoid_focal_loss_forward_impl: implementation for device cuda:0 not found.
+

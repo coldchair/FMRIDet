@@ -4,11 +4,11 @@ custom_imports = dict(
 
 dataset_type = 'CocoNSDDataset'
 data_root = './'
-image_dir = '../nsd_processed_data/all_images'
+image_dir = '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data/all_images'
 
 # default : each sample
 
-SAVE_ROOT_DIR = '../nsd_processed_data'
+SAVE_ROOT_DIR = '/home/bingxing2/ailab/group/ai4bio/public/nsd_processed_data'
 ann_file = f'{SAVE_ROOT_DIR}/instances_0_73000_0.01.json'
 rois = ['early', 'ventral', 'midventral', 'midlateral', 'lateral', 'parietal']
 subj_list = ['subj01', 'subj02', 'subj05', 'subj07']
@@ -38,11 +38,11 @@ for i, subj in enumerate(subj_list):
 
 fmri_files_path_te = [fmri_files_path_te[0], [], [], []] # 只测试 subj01 的数据
 index_file_te = [index_file_te[0], [], [], []]
-# fmri_files_path_te = [[], fmri_files_path_te[1], [], []] # 只测试 subj01 的数据
+# fmri_files_path_te = [[], fmri_files_path_te[1], [], []] # 只测试 subj02 的数据
 # index_file_te = [[], index_file_te[1], [], []]
-# fmri_files_path_te = [[], [], fmri_files_path_te[2], []] # 只测试 subj01 的数据
+# fmri_files_path_te = [[], [], fmri_files_path_te[2], []] # 只测试 subj05 的数据
 # index_file_te = [[], [], index_file_te[2], []]
-# fmri_files_path_te = [[], [], [], fmri_files_path_te[3]] # 只测试 subj01 的数据
+# fmri_files_path_te = [[], [], [], fmri_files_path_te[3]] # 只测试 subj07 的数据
 # index_file_te = [[], [], [], index_file_te[3]]
 
 dataloader_type = 'DetDataLoader_fmri'

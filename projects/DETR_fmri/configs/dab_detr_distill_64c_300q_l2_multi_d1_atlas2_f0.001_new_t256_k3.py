@@ -19,7 +19,7 @@ student_config.test_cfg.max_per_img = 300
 
 student_config.neck.kernel_size = 3
 
-pretrained_model = '/mnt/workspace/maxinzhu/denghan/FMRIDet/work_dirs/dab_detr_64c/epoch_50.pth'
+pretrained_model = '/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/workdirs/dab_detr_64c/epoch_50.pth'
 
 # student_config.bbox_head.num_classes = 12
 student_config.init_cfg.checkpoint = pretrained_model
@@ -119,4 +119,6 @@ visualizer = dict(
     )
 custom_hooks = [dict(type='WriteValidationLossHook')]
 
-resume = True
+# resume = True
+
+load_from = '/home/bingxing2/ailab/scx7kzd/denghan/FMRIDet/workdirs/dab_detr_distill_64c_300q_l2_multi_d1_atlas2_f0.001_new_t256_k3/epoch_34.pth'

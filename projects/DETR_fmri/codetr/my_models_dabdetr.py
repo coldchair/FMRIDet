@@ -45,6 +45,21 @@ class DABDETR_v2(DABDETR):
     def val_loss_step(self, data: Union[tuple, dict, list]):
         data = self.data_preprocessor(data, True)
         return self._run_forward(data, mode='loss')  # type: ignore
+    
+    def test_feature_map(self, data: Union[tuple, dict, list]):
+        data = self.data_preprocessor(data, True)
+        return self._run_forward(data, mode='feature')  # type: ignore
+    
+    def forward(self,
+                inputs: torch.Tensor,
+                data_samples: OptSampleList = None,
+                mode: str = 'tensor') -> ForwardResults:
+        if (mode == 'feature'):
+            img_feats_0, img_feats, encoder_feats =\
+                self.distill_loss_onlyfeat(inputs, data_samples)
+            return img_feats_0, img_feats, encoder_feats
+        else:
+            return super().forward(inputs, data_samples, mode)
 
     def distill_forward_transformer(self,
                             img_feats: Tuple[Tensor],
@@ -299,8 +314,8 @@ class DABDETR_distill(BaseDetector):
 @MODELS.register_module()
 class DABDETR_distill_new(DABDETR_distill):
     def __init__(self,
-                teacher_dim = 64,
-                teacher_dim_2 = 256,
+                teacher_dim = 2048, # without neck
+                teacher_dim_2 = 256, # with neck
                 student_dim = 64,
                 low_level_type = 1, # 1 : with neck, 0 : without neck, 2 : cross
                 loss_label_alpha: float = 1.0,
@@ -319,7 +334,10 @@ class DABDETR_distill_new(DABDETR_distill):
         self.teacher_dim_2 = teacher_dim_2
         self.student_dim = student_dim
         if (teacher_dim != student_dim):
-            self.conv1 = nn.Conv2d(student_dim, teacher_dim, 1)
+            if (self.low_level_type != 0):
+                self.conv1 = nn.Conv2d(student_dim, teacher_dim_2, 1)
+            else:
+                self.conv1 = nn.Conv2d(student_dim, teacher_dim, 1)
             self.conv2 = nn.Conv1d(student_dim, teacher_dim_2, 1)
 
     def forward(self,
@@ -432,6 +450,140 @@ class DABDETR_distill_new(DABDETR_distill):
             # return self.teacher.predict(inputs, data_samples)
         elif mode == 'tensor':
             return self.student._forward(inputs_fmri, data_samples)
+        else:
+            raise RuntimeError(f'Invalid mode "{mode}". '
+                               'Only supports loss, predict and tensor mode')
+
+
+@MODELS.register_module()
+class DABDETR_distill_new_old(DABDETR_distill):
+    def __init__(self,
+                teacher_dim = 64,
+                student_dim = 64,
+                loss_label_alpha: float = 1.0,
+                **kwargs):
+        super().__init__(**kwargs)
+        self.loss_label_alpha = loss_label_alpha
+        self.background_label = 80
+        self.teacher_dim = teacher_dim
+        self.student_dim = student_dim
+        if (teacher_dim != student_dim):
+            self.conv1 = nn.Conv2d(student_dim, teacher_dim, 1)
+            self.conv2 = nn.Conv1d(student_dim, teacher_dim, 1)
+
+    def forward(self,
+                inputs: torch.Tensor,
+                inputs_fmri: torch.Tensor,
+                gm : torch.Tensor,
+                data_samples: OptSampleList = None,
+                mode: str = 'tensor') -> ForwardResults:
+
+        if mode == 'loss':
+            if (self.loss_label_alpha > 0):
+                s_losses, s_low_level_feats_0, s_low_level_feats, s_high_level_feats, \
+                    s_layer_cls_scores, s_layer_bbox_preds, s_batch_gt_instances, s_batch_img_metas, \
+                        s_labels_list = \
+                            self.student.distill_loss(inputs_fmri, data_samples)
+                
+                t_losses, t_low_level_feats_0, t_low_level_feats, t_high_level_feats, \
+                    t_layer_cls_scores, t_layer_bbox_preds, t_batch_gt_instances, t_batch_img_metas, \
+                        t_labels_list = \
+                            self.teacher.distill_loss(inputs, data_samples)
+                
+                # print(s_batch_gt_instances)
+                # print(s_batch_img_metas)
+                # print(s_layer_cls_scores.shape)
+                # print(s_layer_bbox_preds.shape)
+
+                t_layer_cls_scores = t_layer_cls_scores.sigmoid()
+
+                mask_feats_t = []
+                mask_feats_s = []
+                for i in range(len(s_labels_list)):
+                    mask_t = []
+                    mask_s = []
+                    for j in range(len(s_labels_list[i])):
+                        mask_t.append(t_labels_list[i][j] != self.background_label)
+                        mask_s.append(s_labels_list[i][j] != self.background_label)
+                    mask_feats_t.append(torch.stack(mask_t, dim=0))
+                    mask_feats_s.append(torch.stack(mask_s, dim=0))
+                mask_feats_t = torch.stack(mask_feats_t, dim=0)
+                mask_feats_s = torch.stack(mask_feats_s, dim=0)
+
+                losses_pos_all = self.student.bbox_head.loss_by_feat_distill(
+                    s_layer_cls_scores, s_layer_bbox_preds, mask_feats_s,
+                    t_layer_cls_scores, t_layer_bbox_preds, mask_feats_t,
+                    s_batch_gt_instances, s_batch_img_metas
+                )
+                
+                losses_neg_all = self.student.bbox_head.loss_by_feat_distill(
+                    s_layer_cls_scores, s_layer_bbox_preds, torch.logical_not(mask_feats_s),
+                    t_layer_cls_scores, t_layer_bbox_preds, torch.logical_not(mask_feats_t),
+                    s_batch_gt_instances, s_batch_img_metas
+                )
+                
+                def add_suffix(d1, suffix):
+                    return {k + suffix: v for k, v in d1.items()}
+                
+                losses_pos_all = add_suffix(losses_pos_all, '_pos')
+                losses_neg_all = add_suffix(losses_neg_all, '_neg')
+
+                losses_pos_all = {k: v * self.loss_label_alpha for k, v in losses_pos_all.items()}
+                losses_neg_all = {k: v * self.loss_label_alpha for k, v in losses_neg_all.items()}
+
+                s_losses = {**s_losses,
+                            **losses_pos_all,
+                            **losses_neg_all}
+
+            else:
+                s_losses, s_low_level_feats_0, s_low_level_feats, s_high_level_feats, \
+                    s_layer_cls_scores, s_layer_bbox_preds, s_batch_gt_instances, s_batch_img_metas, \
+                        s_labels_list = \
+                            self.student.distill_loss(inputs_fmri, data_samples)
+                t_low_level_feats_0, t_low_level_feats, t_high_level_feats, = \
+                    self.teacher.distill_loss_onlyfeat(inputs, data_samples)
+            
+            if (self.teacher_dim != self.student_dim):
+                # s_low_level_feats = self.conv1(s_low_level_feats)
+                s_low_level_feats_0 = self.conv1(s_low_level_feats_0)
+                s_high_level_feats = self.conv2(s_high_level_feats.permute(0, 2, 1)).permute(0, 2, 1)
+
+            s_losses['feature_distill_loss'] = self.loss_feature_distill_alpha * \
+                F.mse_loss(s_low_level_feats_0, t_low_level_feats)
+                # F.mse_loss(s_low_level_feats, t_low_level_feats)
+
+            s_losses['encoded_feature_distill_loss'] = self.loss_encoded_feature_distill_alpha * \
+                F.mse_loss(s_high_level_feats, t_high_level_feats)
+            
+            sorted_dict = {k: s_losses[k] for k in sorted(s_losses)}
+
+            # print(t_losses)
+            return sorted_dict
+        elif mode == 'predict':
+            return self.student.predict(inputs_fmri, data_samples)
+            # return self.teacher.predict(inputs, data_samples)
+        elif mode == 'tensor':
+            return self.student._forward(inputs_fmri, data_samples)
+        else:
+            raise RuntimeError(f'Invalid mode "{mode}". '
+                               'Only supports loss, predict and tensor mode')
+
+@MODELS.register_module()
+class DABDETR_distill_new_old_tea(DABDETR_distill_new_old):
+    def forward(self,
+                inputs: torch.Tensor,
+                inputs_fmri: torch.Tensor,
+                gm : torch.Tensor,
+                data_samples: OptSampleList = None,
+                mode: str = 'tensor') -> ForwardResults:
+
+        if mode == 'loss':
+            return self.teacher.loss(inputs, data_samples)
+        elif mode == 'predict':
+            return self.teacher.predict(inputs, data_samples)
+            # return self.teacher.predict(inputs, data_samples)
+        elif mode == 'tensor':
+            return self.teacher._forward(inputs, data_samples)
         else:
             raise RuntimeError(f'Invalid mode "{mode}". '
                                'Only supports loss, predict and tensor mode')
